@@ -1,3 +1,7 @@
+package Lexer;
+
+import Token.Token;
+import Token.TokenType;
 
 public class Lexer {
 
