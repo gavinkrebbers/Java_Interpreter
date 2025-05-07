@@ -22,9 +22,7 @@ public class Lexer {
 
         Token tok = null;
         skipWhitespace();
-        if (ch == '5') {
-            System.out.println("weee");
-        }
+
         switch (ch) {
             case '=':
                 tok = new Token(new TokenType(TokenType.ASSIGN), Character.toString(ch));

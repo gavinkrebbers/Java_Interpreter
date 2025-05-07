@@ -22,4 +22,8 @@ public class Token {
         }
         return new TokenType(TokenType.IDENT);
     }
+
+    public String tokenType() {
+        return this.type.TokenType;
+    }
 }

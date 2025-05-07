@@ -4,6 +4,8 @@
     ],
     "java.project.referencedLibraries": [
         "c:\\Computer Science Stuff\\Interpreter\\Monkey_java\\lib\\hamcrest-core-1.3.jar",
-        "c:\\Computer Science Stuff\\Interpreter\\Monkey_java\\lib\\junit-4.13.2.jar"
-    ]
+        "c:\\Computer Science Stuff\\Interpreter\\Monkey_java\\lib\\junit-4.13.2.jar",
+        "test-lib\\**\\*.jar"
+    ],
+    "java.debug.settings.onBuildFailureProceed": true
 }

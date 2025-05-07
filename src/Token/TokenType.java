@@ -63,4 +63,7 @@ public class TokenType {
         this.TokenType = TokenType;
     }
 
+    public String toString() {
+        return this.TokenType;
+    }
 }
