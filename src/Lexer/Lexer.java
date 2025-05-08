@@ -24,7 +24,36 @@ public class Lexer {
         skipWhitespace();
 
         switch (ch) {
+
+            case '/':
+                tok = new Token(new TokenType(TokenType.SLASH), Character.toString(ch));
+                break;
+            case '>':
+                tok = new Token(new TokenType(TokenType.GT), Character.toString(ch));
+                break;
+            case '<':
+                tok = new Token(new TokenType(TokenType.LT), Character.toString(ch));
+                break;
+            case '*':
+                tok = new Token(new TokenType(TokenType.ASTERISK), Character.toString(ch));
+                break;
+            case '!':
+                if (peekChar() == '=') {
+                    tok = new Token(new TokenType(TokenType.NOT_EQ), "!=");
+                    readChar();
+                } else {
+                    tok = new Token(new TokenType(TokenType.BANG), Character.toString(ch));
+                }
+                break;
+            case '-':
+                tok = new Token(new TokenType(TokenType.MINUS), Character.toString(ch));
+                break;
             case '=':
+                if (peekChar() == '=') {
+                    tok = new Token(new TokenType(TokenType.EQ), "==");
+                    readChar();
+                    break;
+                }
                 tok = new Token(new TokenType(TokenType.ASSIGN), Character.toString(ch));
                 break;
             case ';':
@@ -53,9 +82,7 @@ public class Lexer {
                 break;
             default:
                 if (isLetter(ch)) {
-                    if (ch == 'f') {
-                        System.out.println("hi");
-                    }
+
                     tok = new Token();
                     tok.literal = readIdentifier();
                     tok.type = tok.lookupIdent(tok.literal);
@@ -108,6 +135,14 @@ public class Lexer {
         }
         position = readPosition;
         readPosition++;
+    }
+
+    public char peekChar() {
+        if (readPosition >= input.length()) {
+            return 0;
+        }
+
+        return input.charAt(readPosition);
     }
 
     public boolean isLetter(char ch) {

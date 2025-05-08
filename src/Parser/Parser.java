@@ -3,13 +3,25 @@ package Parser;
 import Lexer.Lexer;
 import Token.Token;
 import Token.TokenType;
+import ast.BlockStatement;
+import ast.Boolean;
+import ast.Expression;
+import ast.ExpressionStatement;
 import ast.Identifier;
+import ast.IfExpression;
+import ast.InfixExpression;
+import ast.IntegerLiteral;
 import ast.LetStatement;
+import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Parser {
 
@@ -17,13 +29,64 @@ public class Parser {
     public Token curToken;
     public Token peekToken;
     public List<String> errors;
+    public HashMap<String, Supplier<Expression>> prefixParseFns;
+    public HashMap<String, Function<Expression, Expression>> infixParseFns;
+    Map<String, Integer> precedences = new HashMap<>();
+
+    final int LOWEST = 0;
+    final int EQUALS = 1;
+    final int LESSGREATER = 2;
+    final int SUM = 3;
+    final int PRODUCT = 4;
+    final int PREFIX = 5;
+    final int CALL = 6;
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
         this.errors = new ArrayList<>();
-        this.nextToken();
-        this.nextToken();
+        this.prefixParseFns = new HashMap<>();
+        this.infixParseFns = new HashMap<>();
 
+        nextToken();
+        nextToken();
+        initializePrecedenceMap();
+        initializeInfixFunctions();
+        initializePrefixFunctions();
+
+    }
+
+    private void initializePrefixFunctions() {
+        registerPrefixFn(TokenType.IDENT, () -> parseIdentifier());
+        registerPrefixFn(TokenType.INT, () -> parseIntegerLiteral());
+        registerPrefixFn(TokenType.BANG, () -> parsePrefixExpression());
+        registerPrefixFn(TokenType.MINUS, () -> parsePrefixExpression());
+        registerPrefixFn(TokenType.LPAREN, () -> parseGroupedExpression());
+        registerPrefixFn(TokenType.TRUE, () -> parseBoolean());
+        registerPrefixFn(TokenType.FALSE, () -> parseBoolean());
+        registerPrefixFn(TokenType.IF, () -> parseIfExpression());
+
+    }
+
+    private void initializeInfixFunctions() {
+        registerInfixFn(TokenType.PLUS, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.MINUS, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.SLASH, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.ASTERISK, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.EQ, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.NOT_EQ, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.LT, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.GT, (left) -> parseInfixExpression(left));
+    }
+
+    private void initializePrecedenceMap() {
+        precedences.put("==", EQUALS);
+        precedences.put("!=", EQUALS);
+        precedences.put("<", LESSGREATER);
+        precedences.put(">", LESSGREATER);
+        precedences.put("+", SUM);
+        precedences.put("-", SUM);
+        precedences.put("/", PRODUCT);
+        precedences.put("*", PRODUCT);
     }
 
     public Program parseProgram() {
@@ -47,7 +110,7 @@ public class Parser {
             case TokenType.RETURN:
                 return parseReturnStatement();
             default:
-                return null;
+                return parseExpressionStatement();
         }
     }
 
@@ -71,7 +134,127 @@ public class Parser {
     }
 
     public Statement parseReturnStatement() {
-        Statement stmt = new ReturnStatement();
+        Statement stmt = new ReturnStatement(curToken);
+        nextToken();
+        while (!curTokenIs(TokenType.SEMICOLON)) {
+            nextToken();
+        }
+        return stmt;
+    }
+
+    public ExpressionStatement parseExpressionStatement() {
+        ExpressionStatement stmt = new ExpressionStatement(curToken);
+
+        stmt.expression = parseExpression(LOWEST);
+
+        if (peekTokenIs(TokenType.SEMICOLON)) {
+            nextToken();
+        }
+        return stmt;
+    }
+
+    public Expression parseExpression(int precedence) {
+        Supplier<Expression> prefixFn = prefixParseFns.get(curToken.tokenType());
+        if (prefixFn == null) {
+            return null;
+        }
+        Expression leftExpression = prefixFn.get();
+        while (!peekTokenIs(TokenType.SEMICOLON) && precedence < peekPrecedence()) {
+            Function<Expression, Expression> infixFn = infixParseFns.get(peekToken.tokenType());
+            if (infixFn == null) {
+                return leftExpression;
+            }
+            nextToken();
+            leftExpression = infixFn.apply(leftExpression);
+        }
+        return leftExpression;
+    }
+
+    public Identifier parseIdentifier() {
+
+        return new Identifier(curToken, curToken.literal);
+    }
+
+    public IntegerLiteral parseIntegerLiteral() {
+
+        try {
+            return new IntegerLiteral(curToken, Integer.parseInt(curToken.literal));
+        } catch (NumberFormatException e) {
+            System.out.println("Failed to parse integer: " + curToken.literal);
+            return null;
+        }
+    }
+
+    public PrefixExpression parsePrefixExpression() {
+        PrefixExpression prefixExp = new PrefixExpression(curToken, curToken.literal);
+
+        nextToken();
+        Expression right = parseExpression(PREFIX);
+        prefixExp.right = right;
+        return prefixExp;
+    }
+
+    public Expression parseInfixExpression(Expression left) {
+        InfixExpression expression = new InfixExpression(curToken, left, curToken.literal);
+        int precedence = curPrecedence();
+        nextToken();
+        expression.right = parseExpression(precedence);
+        return expression;
+    }
+
+    public Expression parseIfExpression() {
+        IfExpression expression = new IfExpression(curToken);
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+        nextToken();
+
+        expression.condition = parseExpression(LOWEST);
+        if (!expectPeek(TokenType.RPAREN)) {
+            return null;
+        }
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+        expression.consequence = parseBlockStatement();
+        if (peekTokenIs(TokenType.ELSE)) {
+            nextToken();
+            if (!expectPeek(TokenType.LBRACE)) {
+                return null;
+            }
+            expression.alternative = parseBlockStatement();
+        }
+
+        return expression;
+    }
+
+    public BlockStatement parseBlockStatement() {
+        BlockStatement block = new BlockStatement(curToken);
+
+        nextToken();
+        while (!curTokenIs(TokenType.RBRACE) && !curTokenIs(TokenType.EOF)) {
+            Statement stmt = parseStatement();
+            if (stmt != null) {
+                block.addStatement(stmt);
+            }
+            nextToken();
+        }
+        return block;
+    }
+
+    public Expression parseGroupedExpression() {
+        nextToken();
+
+        Expression exp = parseExpression(LOWEST);
+
+        if (!expectPeek(TokenType.RPAREN)) {
+            return null;
+        }
+        return exp;
+    }
+
+    public Expression parseBoolean() {
+        return new Boolean(curToken, curTokenIs(TokenType.TRUE));
     }
 
     public void nextToken() {
@@ -103,5 +286,22 @@ public class Parser {
     public void peekError(String tokenType) {
         String msg = "The next token should have been " + tokenType + " but was actually " + peekToken.tokenType();
         errors.add(msg);
+    }
+
+    public void registerPrefixFn(String tokenType, Supplier<Expression> prefixParseFn) {
+        prefixParseFns.put(tokenType, prefixParseFn);
+    }
+
+    public void registerInfixFn(String tokenType, Function<Expression, Expression> prefixParseFn) {
+        infixParseFns.put(tokenType, prefixParseFn);
+    }
+
+    public int peekPrecedence() {
+        return precedences.getOrDefault(peekToken.literal, LOWEST);
+    }
+
+    public int curPrecedence() {
+        return precedences.getOrDefault(curToken.literal, LOWEST);
+
     }
 }

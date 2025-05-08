@@ -1,14 +1,23 @@
 
 import Lexer.Lexer;
 import Parser.Parser;
+import ast.Expression;
+import ast.ExpressionStatement;
+import ast.Identifier;
+import ast.IfExpression;
+import ast.InfixExpression;
+import ast.IntegerLiteral;
 import ast.LetStatement;
+import ast.PrefixExpression;
 import ast.Program;
+import ast.ReturnStatement;
 import ast.Statement;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.util.List;
+import java.util.function.ObjDoubleConsumer;
 
 public class ParserTest {
 
@@ -65,4 +74,425 @@ public class ParserTest {
 
         fail("Parser returned errors");
     }
+
+    @Test
+    public void testReturnStatements() {
+        String input = """
+        return 5;
+        return 10;
+        return 993322;
+        """;
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+
+        checkParserErrors(parser);
+        assertNotNull("parseProgram() returned null", program);
+
+        List<Statement> statements = program.statements;
+        assertEquals("program.Statements does not contain 3 statements", 3, statements.size());
+
+        for (Statement stmt : statements) {
+            assertTrue("Statement is not a ReturnStatement", stmt instanceof ReturnStatement);
+            ReturnStatement returnStmt = (ReturnStatement) stmt;
+            assertEquals("returnStmt.TokenLiteral() is not 'return'", "return", returnStmt.TokenLiteral());
+        }
+    }
+
+    @Test
+    public void testIdentifierExpression() {
+        String input = "foobar;";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+
+        checkParserErrors(parser);
+        assertNotNull("program is null", program);
+
+        List<Statement> statements = program.statements;
+        assertEquals("program should have 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not Identifier", exprStmt.expression instanceof Identifier);
+
+        Identifier ident = (Identifier) exprStmt.expression;
+        assertEquals("Identifier value mismatch", "foobar", ident.value);
+        assertEquals("Identifier token literal mismatch", "foobar", ident.TokenLiteral());
+    }
+
+    private boolean testIntegerLiteral(Expression expr, long expectedValue) {
+        assertTrue("Expression is not IntegerLiteral", expr instanceof IntegerLiteral);
+        IntegerLiteral literal = (IntegerLiteral) expr;
+
+        if (literal.value != expectedValue) {
+            fail("IntegerLiteral value mismatch. Expected: " + expectedValue + ", Got: " + literal.value);
+            return false;
+        }
+
+        if (!literal.TokenLiteral().equals(Long.toString(expectedValue))) {
+            fail("TokenLiteral mismatch. Expected: " + expectedValue + ", Got: " + literal.TokenLiteral());
+            return false;
+        }
+
+        return true;
+    }
+
+    @Test
+    public void testParsingPrefixExpressions() {
+        class PrefixTest {
+
+            String input;
+            String operator;
+            Object expectedValue;
+
+            PrefixTest(String input, String operator, Object expectedValue) {
+                this.input = input;
+                this.operator = operator;
+                this.expectedValue = expectedValue;
+            }
+        }
+
+        PrefixTest[] tests = {
+            new PrefixTest("!5;", "!", 5),
+            new PrefixTest("-15;", "-", 15),
+            new PrefixTest("!true;", "!", true),
+            new PrefixTest("!false;", "!", false),};
+
+        for (PrefixTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            List<Statement> statements = program.statements;
+            assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+            Statement stmt = statements.get(0);
+            assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+            ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+            assertTrue("Expression is not a PrefixExpression", exprStmt.expression instanceof PrefixExpression);
+
+            PrefixExpression exp = (PrefixExpression) exprStmt.expression;
+            assertEquals("exp.Operator is incorrect", tt.operator, exp.operator);
+
+            assertTrue("exp.Right literal test failed", testLiteralExpression(exp.right, tt.expectedValue));
+        }
+    }
+
+    @Test
+    public void testParsingInfixExpressions() {
+        // Define test cases
+        class InfixTest {
+
+            String input;
+            long leftValue;
+            String operator;
+            long rightValue;
+
+            InfixTest(String input, long leftValue, String operator, long rightValue) {
+                this.input = input;
+                this.leftValue = leftValue;
+                this.operator = operator;
+                this.rightValue = rightValue;
+            }
+        }
+
+        InfixTest[] infixTests = {
+            new InfixTest("5 + 5;", 5, "+", 5),
+            new InfixTest("5 - 5;", 5, "-", 5),
+            new InfixTest("5 * 5;", 5, "*", 5),
+            new InfixTest("5 / 5;", 5, "/", 5),
+            new InfixTest("5 > 5;", 5, ">", 5),
+            new InfixTest("5 < 5;", 5, "<", 5),
+            new InfixTest("5 == 5;", 5, "==", 5),
+            new InfixTest("5 != 5;", 5, "!=", 5),};
+
+        // Loop through each test case
+        for (InfixTest tt : infixTests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            // Ensure there is exactly 1 statement in the program
+            assertEquals("program.Statements does not contain 1 statement", 1, program.statements.size());
+
+            Statement stmt = program.statements.get(0);
+            assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+            ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+            assertTrue("Expression is not an InfixExpression", exprStmt.expression instanceof InfixExpression);
+
+            InfixExpression exp = (InfixExpression) exprStmt.expression;
+
+            // Test left side value
+            assertTrue("Left operand is incorrect", testIntegerLiteral(exp.left, tt.leftValue));
+
+            // Test operator
+            assertEquals("exp.Operator is incorrect", tt.operator, exp.operator);
+
+            // Test right side value
+            assertTrue("Right operand is incorrect", testIntegerLiteral(exp.right, tt.rightValue));
+        }
+    }
+
+    private boolean testIntegerLiteral(Expression expr, long expectedValue) {
+        assertTrue("Expression is not IntegerLiteral", expr instanceof IntegerLiteral);
+        IntegerLiteral literal = (IntegerLiteral) expr;
+        if (literal.value != expectedValue) {
+            fail("IntegerLiteral value mismatch. Expected: " + expectedValue + ", Got: " + literal.value);
+            return false;
+        }
+        return true;
+    }
+
+    @Test
+    public void testOperatorPrecedenceParsing() {
+        class OperatorPrecedenceTest {
+
+            String input;
+            String expected;
+
+            OperatorPrecedenceTest(String input, String expected) {
+                this.input = input;
+                this.expected = expected;
+            }
+        }
+
+        OperatorPrecedenceTest[] tests = {
+            new OperatorPrecedenceTest("-a * b", "((-a) * b)"),
+            new OperatorPrecedenceTest("!-a", "(!(-a))"),
+            new OperatorPrecedenceTest("a + b + c", "((a + b) + c)"),
+            new OperatorPrecedenceTest("a + b - c", "((a + b) - c)"),
+            new OperatorPrecedenceTest("a * b * c", "((a * b) * c)"),
+            new OperatorPrecedenceTest("a * b / c", "((a * b) / c)"),
+            new OperatorPrecedenceTest("a + b / c", "(a + (b / c))"),
+            new OperatorPrecedenceTest("3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"),
+            new OperatorPrecedenceTest("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"),
+            new OperatorPrecedenceTest("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"),
+            new OperatorPrecedenceTest("3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+            new OperatorPrecedenceTest("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"),
+            new OperatorPrecedenceTest("true", "true"),
+            new OperatorPrecedenceTest("false", "false"),
+            new OperatorPrecedenceTest("3 > 5 == false", "((3 > 5) == false)"),
+            new OperatorPrecedenceTest("3 < 5 == true", "((3 < 5) == true)"),
+            new OperatorPrecedenceTest("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            new OperatorPrecedenceTest("(5 + 5) * 2", "((5 + 5) * 2)"),
+            new OperatorPrecedenceTest("2 / (5 + 5)", "(2 / (5 + 5))"),
+            new OperatorPrecedenceTest("-(5 + 5)", "(-(5 + 5))"),
+            new OperatorPrecedenceTest("!(true == true)", "(!(true == true))"),
+            new OperatorPrecedenceTest("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"),
+            new OperatorPrecedenceTest("(5 + 5) * 2", "((5 + 5) * 2)"),
+            new OperatorPrecedenceTest("2 / (5 + 5)", "(2 / (5 + 5))"),
+            new OperatorPrecedenceTest("-(5 + 5)", "(-(5 + 5))"),
+            new OperatorPrecedenceTest("!(true == true)", "(!(true == true))")
+        };
+
+        for (OperatorPrecedenceTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            String actual = program.toString();
+            assertEquals("Operator precedence test failed for input: " + tt.input,
+                    tt.expected, actual);
+        }
+    }
+
+    private boolean testIdentifier(Expression exp, String expectedValue) {
+        assertTrue("Expression is not an Identifier", exp instanceof Identifier);
+        Identifier ident = (Identifier) exp;
+
+        if (!ident.value.equals(expectedValue)) {
+            fail("Identifier value mismatch. Expected: " + expectedValue + ", Got: " + ident.value);
+            return false;
+        }
+
+        if (!ident.TokenLiteral().equals(expectedValue)) {
+            fail("Identifier TokenLiteral mismatch. Expected: " + expectedValue + ", Got: " + ident.TokenLiteral());
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean testLiteralExpression(Expression exp, Object expected) {
+        if (expected instanceof Integer) {
+            return testIntegerLiteral(exp, ((Integer) expected).longValue());
+        } else if (expected instanceof Boolean) {
+            return testBooleanLiteral(exp, (Boolean) expected);
+        } else if (expected instanceof String) {
+            return testIdentifier(exp, (String) expected);
+        } else {
+            fail("Unhandled type in testLiteralExpression: " + expected.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    @Test
+    public void testBooleanExpression() {
+        class BooleanTest {
+
+            String input;
+            boolean expectedValue;
+
+            BooleanTest(String input, boolean expectedValue) {
+                this.input = input;
+                this.expectedValue = expectedValue;
+            }
+        }
+
+        BooleanTest[] tests = {
+            new BooleanTest("true;", true),
+            new BooleanTest("false;", false),};
+
+        for (BooleanTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            List<Statement> statements = program.statements;
+            assertEquals("program has not enough statements", 1, statements.size());
+
+            Statement stmt = statements.get(0);
+            assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+            ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+            assertTrue("Expression is not a Boolean", exprStmt.expression instanceof ast.Boolean);
+
+            assertTrue("Boolean literal test failed", testBooleanLiteral(exprStmt.expression, tt.expectedValue));
+        }
+    }
+
+    private boolean testInfixExpression(Expression exp, Object left, String operator, Object right) {
+        assertTrue("Expression is not an InfixExpression", exp instanceof InfixExpression);
+        InfixExpression infixExp = (InfixExpression) exp;
+
+        if (!testLiteralExpression(infixExp.left, left)) {
+            return false;
+        }
+
+        assertEquals("Operator mismatch", operator, infixExp.operator);
+
+        if (!testLiteralExpression(infixExp.right, right)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean testBooleanLiteral(Expression expr, boolean expectedValue) {
+        assertTrue("Expression is not BooleanLiteral", expr instanceof ast.Boolean);
+        ast.Boolean boolExpr = (ast.Boolean) expr;
+
+        if (boolExpr.value != expectedValue) {
+            fail("Boolean value mismatch. Expected: " + expectedValue + ", Got: " + boolExpr.value);
+            return false;
+        }
+
+        if (!boolExpr.TokenLiteral().equals(Boolean.toString(expectedValue))) {
+            fail("TokenLiteral mismatch. Expected: " + expectedValue + ", Got: " + boolExpr.TokenLiteral());
+            return false;
+        }
+
+        return true;
+    }
+
+    @Test
+    public void testIfExpression() {
+        class IfExpressionTest {
+
+            String input;
+
+            IfExpressionTest(String input) {
+                this.input = input;
+            }
+        }
+
+        IfExpressionTest[] tests = {
+            new IfExpressionTest("if (x < y) { x }")
+        };
+
+        for (IfExpressionTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            // Check that the program contains one statement
+            assertEquals("program.Body does not contain 1 statement", 1, program.statements.size());
+
+            Statement stmt = program.statements.get(0);
+            assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+            ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+            assertTrue("Expression is not an IfExpression", exprStmt.expression instanceof IfExpression);
+
+            IfExpression ifExp = (IfExpression) exprStmt.expression;
+
+            // Test the condition part of the IfExpression
+            if (!testInfixExpression(ifExp.getCondition(), "x", "<", "y")) {
+                return;
+            }
+
+            assertEquals("Consequence is not 1 statement", 1, ifExp.getConsequence().statements.size());
+            Statement consequence = ifExp.getConsequence().statements.get(0);
+            assertTrue("Consequence is not an ExpressionStatement", consequence instanceof ExpressionStatement);
+
+            ExpressionStatement consequenceStmt = (ExpressionStatement) consequence;
+            assertTrue("Consequence expression is not Identifier", testIdentifier(consequenceStmt.expression, "x"));
+
+            assertNull("Alternative should be null", ifExp.getAlternative());
+        }
+    }
+
+    @Test
+    public void testIfElseExpression() {
+        String input = "if (x < y) { x } else { y }";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        assertEquals("program.Body does not contain 1 statement", 1, program.statements.size());
+
+        Statement stmt = program.statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not an IfExpression", exprStmt.expression instanceof IfExpression);
+
+        IfExpression ifExp = (IfExpression) exprStmt.expression;
+
+        if (!testInfixExpression(ifExp.getCondition(), "x", "<", "y")) {
+            return;
+        }
+
+        assertEquals("Consequence is not 1 statement", 1, ifExp.getConsequence().statements.size());
+
+        Statement consequenceStmt = ifExp.getConsequence().statements.get(0);
+        assertTrue("Consequence statement is not ExpressionStatement", consequenceStmt instanceof ExpressionStatement);
+
+        ExpressionStatement consequenceExprStmt = (ExpressionStatement) consequenceStmt;
+        assertTrue("Consequence expression is not Identifier", testIdentifier(consequenceExprStmt.expression, "x"));
+
+        assertNotNull("Alternative should not be null", ifExp.getAlternative());
+        assertEquals("Alternative does not contain 1 statement", 1, ifExp.getAlternative().statements.size());
+
+        Statement alternativeStmt = ifExp.getAlternative().statements.get(0);
+        assertTrue("Alternative statement is not ExpressionStatement", alternativeStmt instanceof ExpressionStatement);
+
+        ExpressionStatement alternativeExprStmt = (ExpressionStatement) alternativeStmt;
+        assertTrue("Alternative expression is not Identifier", testIdentifier(alternativeExprStmt.expression, "y"));
+    }
+
 }

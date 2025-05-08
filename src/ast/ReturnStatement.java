@@ -12,8 +12,18 @@ public class ReturnStatement implements Statement {
         this.returnValue = returnValue;
     }
 
+    public ReturnStatement(Token token) {
+        this.token = token;
+
+    }
+
     public ReturnStatement() {
 
+    }
+
+    @Override
+    public String toString() {
+        return token.literal + " " + (returnValue != null ? returnValue.toString() : "") + ";";
     }
 
     @Override

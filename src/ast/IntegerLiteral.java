@@ -2,19 +2,19 @@ package ast;
 
 import Token.Token;
 
-public class Identifier implements Expression {
+public class IntegerLiteral implements Expression {
 
-    private Token token;
-    public String value;
+    public Token token;
+    public int value;
 
-    public Identifier(Token token, String value) {
+    public IntegerLiteral(Token token, int value) {
         this.token = token;
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return value;
+        return TokenLiteral();
     }
 
     @Override

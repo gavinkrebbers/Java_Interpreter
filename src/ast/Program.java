@@ -11,6 +11,15 @@ public class Program implements ProgramNode {
         this.statements = new ArrayList<>();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder out = new StringBuilder();
+        for (Statement stmt : statements) {
+            out.append(stmt.toString());
+        }
+        return out.toString();
+    }
+
     public void addStatement(Statement stmt) {
         this.statements.add(stmt);
     }
