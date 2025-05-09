@@ -20,6 +20,10 @@ public class Program implements ProgramNode {
         return out.toString();
     }
 
+    public List<Statement> getStatements() {
+        return statements;
+    }
+
     public void addStatement(Statement stmt) {
         this.statements.add(stmt);
     }

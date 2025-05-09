@@ -1,0 +1,25 @@
+"filename", "language", "Java", "comment", "blank", "total"
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\LexerTest.java", "Java", 21, 43, 11, 75
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Lexer\Lexer.java", "Java", 136, 0, 22, 158
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Main.java", "Java", 12, 0, 5, 17
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ParserTest.java", "Java", 467, 8, 149, 624
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Parser\Parser.java", "Java", 317, 0, 70, 387
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Token\Token.java", "Java", 22, 0, 8, 30
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Token\TokenType.java", "Java", 50, 4, 16, 70
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\BlockStatement.java", "Java", 30, 0, 10, 40
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Boolean.java", "Java", 21, 0, 10, 31
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\CallExpression.java", "Java", 35, 0, 9, 44
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Expression.java", "Java", 4, 0, 3, 7
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\ExpressionStatement.java", "Java", 20, 0, 9, 29
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\FunctionLiteral.java", "Java", 44, 0, 13, 57
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Identifier.java", "Java", 21, 0, 9, 30
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\IfExpression.java", "Java", 43, 0, 13, 56
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\InfixExpression.java", "Java", 24, 0, 9, 33
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\IntegerLiteral.java", "Java", 21, 0, 9, 30
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\LetStatement.java", "Java", 36, 0, 11, 47
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\PrefixExpression.java", "Java", 27, 0, 11, 38
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Program.java", "Java", 30, 0, 10, 40
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\ProgramNode.java", "Java", 5, 0, 4, 9
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\ReturnStatement.java", "Java", 26, 0, 14, 40
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Statement.java", "Java", 4, 0, 3, 7
+"Total", "-", 1416, 55, 428, 1899

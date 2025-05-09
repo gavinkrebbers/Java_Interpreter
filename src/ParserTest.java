@@ -1,8 +1,10 @@
 
 import Lexer.Lexer;
 import Parser.Parser;
+import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
+import ast.FunctionLiteral;
 import ast.Identifier;
 import ast.IfExpression;
 import ast.InfixExpression;
@@ -23,25 +25,42 @@ public class ParserTest {
 
     @Test
     public void testLetStatements() {
-        String input = """
-            let x = 5;
-            let y = 10;
-            let foobar =  838383;
-            """;
+        class LetTest {
 
-        Lexer lexer = new Lexer(input);
-        Parser parser = new Parser(lexer);
-        Program program = parser.parseProgram();
-        checkParserErrors(parser);
-        assertNotNull("parseProgram() returned null", program);
+            String input;
+            String expectedIdentifier;
+            Object expectedValue;
 
-        List<Statement> statements = program.statements;
-        assertEquals("program.Statements does not contain 3 statements", 3, statements.size());
+            LetTest(String input, String expectedIdentifier, Object expectedValue) {
+                this.input = input;
+                this.expectedIdentifier = expectedIdentifier;
+                this.expectedValue = expectedValue;
+            }
+        }
 
-        String[] expectedIdentifiers = {"x", "y", "foobar"};
+        LetTest[] tests = {
+            new LetTest("let x = 5;", "x", 5),
+            new LetTest("let y = true;", "y", true),
+            new LetTest("let foobar = y;", "foobar", "y"),};
 
-        for (int i = 0; i < expectedIdentifiers.length; i++) {
-            assertTrue("Statement is not a LetStatement", testLetStatement(statements.get(i), expectedIdentifiers[i]));
+        for (LetTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            List<Statement> statements = program.getStatements();
+            assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+            Statement stmt = statements.get(0);
+            assertTrue("Statement is not a LetStatement", stmt instanceof LetStatement);
+
+            LetStatement letStmt = (LetStatement) stmt;
+
+            assertEquals("LetStatement name is incorrect", tt.expectedIdentifier, letStmt.identifier.value);
+            assertEquals("LetStatement name token literal mismatch", tt.expectedIdentifier, letStmt.identifier.TokenLiteral());
+
+            assertTrue("LetStatement value test failed", testLiteralExpression(letStmt.value, tt.expectedValue));
         }
     }
 
@@ -493,6 +512,112 @@ public class ParserTest {
 
         ExpressionStatement alternativeExprStmt = (ExpressionStatement) alternativeStmt;
         assertTrue("Alternative expression is not Identifier", testIdentifier(alternativeExprStmt.expression, "y"));
+    }
+
+    @Test
+    public void testFunctionLiteralParsing() {
+        String input = "fn(x, y) { x + y; }";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        assertEquals("program.Body does not contain 1 statement", 1, program.statements.size());
+
+        Statement stmt = program.statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a FunctionLiteral", exprStmt.expression instanceof FunctionLiteral);
+
+        FunctionLiteral function = (FunctionLiteral) exprStmt.expression;
+
+        assertEquals("Function literal parameters wrong. Expected 2", 2, function.getParameters().size());
+
+        testLiteralExpression(function.getParameters().get(0), "x");
+        testLiteralExpression(function.getParameters().get(1), "y");
+
+        assertEquals("Function body does not contain 1 statement", 1, function.getBody().statements.size());
+
+        Statement bodyStmt = function.getBody().statements.get(0);
+        assertTrue("Function body statement is not ExpressionStatement", bodyStmt instanceof ExpressionStatement);
+
+        ExpressionStatement bodyExprStmt = (ExpressionStatement) bodyStmt;
+        testInfixExpression(bodyExprStmt.expression, "x", "+", "y");
+    }
+
+    @Test
+    public void testFunctionParameterParsing() {
+        class FunctionParameterTest {
+
+            String input;
+            String[] expectedParams;
+
+            FunctionParameterTest(String input, String[] expectedParams) {
+                this.input = input;
+                this.expectedParams = expectedParams;
+            }
+        }
+
+        FunctionParameterTest[] tests = {
+            new FunctionParameterTest("fn() {};", new String[]{}),
+            new FunctionParameterTest("fn(x) {};", new String[]{"x"}),
+            new FunctionParameterTest("fn(x, y, z) {};", new String[]{"x", "y", "z"})
+        };
+
+        for (FunctionParameterTest tt : tests) {
+            Lexer lexer = new Lexer(tt.input);
+            Parser parser = new Parser(lexer);
+            Program program = parser.parseProgram();
+            checkParserErrors(parser);
+
+            Statement stmt = program.statements.get(0);
+            assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+            ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+            assertTrue("Expression is not a FunctionLiteral", exprStmt.expression instanceof FunctionLiteral);
+
+            FunctionLiteral function = (FunctionLiteral) exprStmt.expression;
+            List<Identifier> params = function.getParameters();
+
+            assertEquals("Incorrect number of parameters", tt.expectedParams.length, params.size());
+
+            for (int i = 0; i < tt.expectedParams.length; i++) {
+                testLiteralExpression(params.get(i), tt.expectedParams[i]);
+            }
+        }
+    }
+
+    @Test
+    public void testCallExpressionParsing() {
+        String input = "add(1, 2 * 3, 4 + 5);";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a CallExpression", exprStmt.expression instanceof CallExpression);
+
+        CallExpression call = (CallExpression) exprStmt.expression;
+
+        assertTrue("Function is not an Identifier", call.function instanceof Identifier);
+        testIdentifier(call.function, "add");
+
+        List<Expression> args = call.arguments;
+        assertEquals("Wrong number of arguments", 3, args.size());
+
+        testLiteralExpression(args.get(0), 1);
+        testInfixExpression(args.get(1), 2, "*", 3);
+        testInfixExpression(args.get(2), 4, "+", 5);
     }
 
 }

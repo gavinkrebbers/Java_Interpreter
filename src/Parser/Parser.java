@@ -5,8 +5,10 @@ import Token.Token;
 import Token.TokenType;
 import ast.BlockStatement;
 import ast.Boolean;
+import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
+import ast.FunctionLiteral;
 import ast.Identifier;
 import ast.IfExpression;
 import ast.InfixExpression;
@@ -16,6 +18,7 @@ import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +67,7 @@ public class Parser {
         registerPrefixFn(TokenType.TRUE, () -> parseBoolean());
         registerPrefixFn(TokenType.FALSE, () -> parseBoolean());
         registerPrefixFn(TokenType.IF, () -> parseIfExpression());
+        registerPrefixFn(TokenType.FUNCTION, () -> parseFunctionLiteral());
 
     }
 
@@ -76,6 +80,8 @@ public class Parser {
         registerInfixFn(TokenType.NOT_EQ, (left) -> parseInfixExpression(left));
         registerInfixFn(TokenType.LT, (left) -> parseInfixExpression(left));
         registerInfixFn(TokenType.GT, (left) -> parseInfixExpression(left));
+        registerInfixFn(TokenType.LPAREN, (left) -> parseCallExpression(left));
+
     }
 
     private void initializePrecedenceMap() {
@@ -87,6 +93,7 @@ public class Parser {
         precedences.put("-", SUM);
         precedences.put("/", PRODUCT);
         precedences.put("*", PRODUCT);
+        precedences.put("(", CALL);
     }
 
     public Program parseProgram() {
@@ -124,9 +131,10 @@ public class Parser {
         if (!expectPeek(TokenType.ASSIGN)) {
             return null;
         }
+        nextToken();
 
-        // TODO implement this 
-        while (!curTokenIs(TokenType.SEMICOLON)) {
+        stmt.value = parseExpression(LOWEST);
+        if (peekTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
 
@@ -257,6 +265,76 @@ public class Parser {
         return new Boolean(curToken, curTokenIs(TokenType.TRUE));
     }
 
+    public Expression parseFunctionLiteral() {
+        FunctionLiteral func = new FunctionLiteral(curToken);
+
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+        nextToken();
+        func.parameters = parseFunctionParameters();
+
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+        func.body = parseBlockStatement();
+
+        return func;
+    }
+
+    public List<Identifier> parseFunctionParameters() {
+        List<Identifier> output = new ArrayList<Identifier>();
+        if (curTokenIs(TokenType.RPAREN)) {
+
+            return output;
+        }
+
+        while (!peekTokenIs(TokenType.RPAREN)) {
+
+            Identifier ident = new Identifier(curToken, curToken.literal);
+            output.add(ident);
+            nextToken();
+            nextToken();
+        }
+        Identifier ident = new Identifier(curToken, curToken.literal);
+        output.add(ident);
+
+        if (!peekTokenIs(TokenType.RPAREN)) {
+            return null;
+        }
+        nextToken();
+
+        return output;
+
+    }
+
+    public Expression parseCallExpression(Expression function) {
+        CallExpression expression = new CallExpression(curToken, function);
+        expression.arguments = parseCallArguments();
+        return expression;
+    }
+
+    public List<Expression> parseCallArguments() {
+        List<Expression> args = new ArrayList<Expression>();
+        if (curTokenIs(TokenType.RPAREN)) {
+
+            return args;
+        }
+        nextToken();
+        args.add(parseExpression(LOWEST));
+        while (!peekTokenIs(TokenType.RPAREN)) {
+            nextToken();
+            nextToken();
+            args.add(parseExpression(LOWEST));
+
+        }
+
+        if (!expectPeek(TokenType.RPAREN)) {
+            return null;
+        }
+        return args;
+    }
+
     public void nextToken() {
         curToken = peekToken;
         peekToken = lexer.nextToken();
@@ -304,4 +382,5 @@ public class Parser {
         return precedences.getOrDefault(curToken.literal, LOWEST);
 
     }
+
 }
