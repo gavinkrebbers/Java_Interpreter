@@ -12,6 +12,14 @@ public class IntegerLiteral implements Expression {
         this.value = value;
     }
 
+    public Token getToken() {
+        return token;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
     @Override
     public String toString() {
         return TokenLiteral();

@@ -18,7 +18,6 @@ import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -142,9 +141,10 @@ public class Parser {
     }
 
     public Statement parseReturnStatement() {
-        Statement stmt = new ReturnStatement(curToken);
+        ReturnStatement stmt = new ReturnStatement(curToken);
         nextToken();
-        while (!curTokenIs(TokenType.SEMICOLON)) {
+        stmt.returnValue = parseExpression(LOWEST);
+        if (peekTokenIs(TokenType.SEMICOLON)) {
             nextToken();
         }
         return stmt;
@@ -271,7 +271,6 @@ public class Parser {
         if (!expectPeek(TokenType.LPAREN)) {
             return null;
         }
-        nextToken();
         func.parameters = parseFunctionParameters();
 
         if (!expectPeek(TokenType.LBRACE)) {
@@ -284,25 +283,24 @@ public class Parser {
 
     public List<Identifier> parseFunctionParameters() {
         List<Identifier> output = new ArrayList<Identifier>();
-        if (curTokenIs(TokenType.RPAREN)) {
-
+        if (peekTokenIs(TokenType.RPAREN)) {
+            nextToken();
             return output;
         }
-
-        while (!peekTokenIs(TokenType.RPAREN)) {
-
-            Identifier ident = new Identifier(curToken, curToken.literal);
-            output.add(ident);
-            nextToken();
-            nextToken();
-        }
+        nextToken();
         Identifier ident = new Identifier(curToken, curToken.literal);
         output.add(ident);
+        while (!peekTokenIs(TokenType.RPAREN)) {
 
-        if (!peekTokenIs(TokenType.RPAREN)) {
+            nextToken();
+            nextToken();
+            ident = new Identifier(curToken, curToken.literal);
+            output.add(ident);
+        }
+
+        if (!expectPeek(TokenType.RPAREN)) {
             return null;
         }
-        nextToken();
 
         return output;
 
@@ -315,14 +313,16 @@ public class Parser {
     }
 
     public List<Expression> parseCallArguments() {
-        List<Expression> args = new ArrayList<Expression>();
-        if (curTokenIs(TokenType.RPAREN)) {
+        List<Expression> args = new ArrayList<>();
 
+        if (peekTokenIs(TokenType.RPAREN)) {
+            nextToken();
             return args;
         }
+
         nextToken();
         args.add(parseExpression(LOWEST));
-        while (!peekTokenIs(TokenType.RPAREN)) {
+        while (peekTokenIs(TokenType.COMMA)) {
             nextToken();
             nextToken();
             args.add(parseExpression(LOWEST));

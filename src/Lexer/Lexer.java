@@ -146,7 +146,7 @@ public class Lexer {
     }
 
     public boolean isLetter(char ch) {
-        return Character.isLetter(ch) || ch == '-';
+        return Character.isLetter(ch) || ch == '_';
 
     }
 

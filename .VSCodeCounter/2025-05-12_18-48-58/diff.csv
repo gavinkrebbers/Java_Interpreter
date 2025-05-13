@@ -1,0 +1,16 @@
+"filename", "language", "Java", "comment", "blank", "total"
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\BooleanObj.java", "Java", 18, 0, 8, 26
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\Environment.java", "Java", 35, 0, 14, 49
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\ErrorObj.java", "Java", 18, 0, 8, 26
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\EvalObject.java", "Java", 5, 0, 4, 9
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\FunctionObj.java", "Java", 44, 0, 14, 58
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\IntegerObj.java", "Java", 21, 0, 10, 31
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\NullObj.java", "Java", 13, 0, 6, 19
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvalObject\ReturnObj.java", "Java", 15, 0, 8, 23
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\EvaluatorTest.java", "Java", 247, 0, 54, 301
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Evaluator\Evaluator.java", "Java", 263, 0, 37, 300
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Main.java", "Java", -7, 0, -1, -8
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Parser\Parser.java", "Java", 2, 0, -2, 0
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\REPL.java", "Java", 43, 2, 9, 54
+"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\IntegerLiteral.java", "Java", 6, 0, 2, 8
+"Total", "-", 723, 2, 171, 896
