@@ -1,4 +1,5 @@
 
+import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
@@ -15,6 +16,7 @@ import junit.framework.TestCase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.function.Function;
 
@@ -206,7 +208,8 @@ public class EvaluatorTest {
                 return 1;
             }
             """, "unknown operator: BOOLEAN + BOOLEAN"),
-            new TestCase("foobar", "identifier not found: foobar"),};
+            new TestCase("foobar", "identifier not found: foobar"),
+            new TestCase("\"Hello\" - \"World\"", "unknown operator: STRING - STRING"),};
 
         for (TestCase tt : tests) {
             EvalObject evaluated = testEval(tt.input);
@@ -298,6 +301,70 @@ public class EvaluatorTest {
 
         StringObj str = (StringObj) evaluated;
         assertEquals("String has wrong value", "Hello World!", str.value);
+    }
+
+    @Test
+    public void testArrayLiterals() {
+        String input = "[1, 2 * 2, 3 + 3]";
+
+        EvalObject evaluated = testEval(input);
+        assertTrue("Object is not ArrayObj", evaluated instanceof ArrayObj);
+
+        ArrayObj result = (ArrayObj) evaluated;
+        assertEquals("Array has wrong number of elements", 3, result.getElements().size());
+
+        // Test first element (1)
+        assertTrue("First element test failed",
+                testIntegerObject(result.getElements().get(0), 1));
+
+        // Test second element (2 * 2 = 4)
+        assertTrue("Second element test failed",
+                testIntegerObject(result.getElements().get(1), 4));
+
+        // Test third element (3 + 3 = 6)
+        assertTrue("Third element test failed",
+                testIntegerObject(result.getElements().get(2), 6));
+    }
+
+    @Test
+    public void testStringConcatenation() {
+        class TestCase {
+
+            String input;
+            String expected;
+
+            TestCase(String input, String expected) {
+                this.input = input;
+                this.expected = expected;
+            }
+        }
+
+        TestCase[] tests = {
+            new TestCase("\"\" + \"Hello\"", "Hello"),
+            new TestCase("\"Hello\" + \"\"", "Hello"),
+            new TestCase("\"\" + \"\"", ""),
+            new TestCase("\"A\" + \"B\" + \"C\"", "ABC")
+        };
+
+        for (TestCase tt : tests) {
+            EvalObject evaluated = testEval(tt.input);
+            assertTrue("Object is not StringObj for input: " + tt.input,
+                    evaluated instanceof StringObj);
+            StringObj str = (StringObj) evaluated;
+            assertEquals("String concatenation failed for input: " + tt.input,
+                    tt.expected, str.value);
+        }
+    }
+
+    private boolean testIntegerObject(EvalObject obj, long expected) {
+        assertTrue("Object is not IntegerObj", obj instanceof IntegerObj);
+        IntegerObj intObj = (IntegerObj) obj;
+        if (intObj.getValue() != expected) {
+            fail(String.format("Integer value mismatch. Expected %d, got %d",
+                    expected, intObj.getValue()));
+            return false;
+        }
+        return true;
     }
 
     private EvalObject testEval(String input) {

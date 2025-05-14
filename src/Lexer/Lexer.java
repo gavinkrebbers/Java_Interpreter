@@ -92,6 +92,9 @@ public class Lexer {
             case ']':
                 tok = new Token(new TokenType(TokenType.RBRACKET), Character.toString(ch));
                 break;
+            case ':':
+                tok = new Token(new TokenType(TokenType.COLON), Character.toString(ch));
+                break;
             case '\0':
                 tok = new Token(new TokenType(TokenType.EOF), "");
                 break;

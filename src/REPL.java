@@ -35,8 +35,8 @@ public class REPL {
 
                 Evaluator e = new Evaluator();
                 EvalObject evaluated = e.eval(program, env);
-                if (evaluated instanceof ErrorObj) {
-                    System.out.println("there was an error");
+                if (evaluated instanceof ErrorObj err) {
+                    System.out.println(err.message);
                 } else if (evaluated != null) {
                     System.out.println(evaluated.inspect());
                     System.out.println("\n");

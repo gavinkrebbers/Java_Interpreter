@@ -641,4 +641,37 @@ public class ParserTest {
         ast.StringLiteral literal = (ast.StringLiteral) exprStmt.expression;
         assertEquals("literal.Value not \"hello world\"", "hello world", literal.value);
     }
+
+    @Test
+    public void testParsingArrayLiterals() {
+        String input = "[1, 2 * 2, 3 + 3]";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not an ArrayLiteral", exprStmt.expression instanceof ast.ArrayLiteral);
+
+        ast.ArrayLiteral array = (ast.ArrayLiteral) exprStmt.expression;
+        assertEquals("len(array.Elements) not 3", 3, array.getElements().size());
+
+        // Test first element (integer literal)
+        assertTrue("First element test failed", testIntegerLiteral(array.getElements().get(0), 1));
+
+        // Test second element (infix expression)
+        assertTrue("Second element test failed",
+                testInfixExpression(array.getElements().get(1), 2, "*", 2));
+
+        // Test third element (infix expression)
+        assertTrue("Third element test failed",
+                testInfixExpression(array.getElements().get(2), 3, "+", 3));
+    }
 }

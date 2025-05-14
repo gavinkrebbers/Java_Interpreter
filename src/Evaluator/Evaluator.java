@@ -1,6 +1,9 @@
 package Evaluator;
 
+import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
+import EvalObject.Builtin;
+import EvalObject.Builtins;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
@@ -9,6 +12,7 @@ import EvalObject.IntegerObj;
 import EvalObject.NullObj;
 import EvalObject.ReturnObj;
 import EvalObject.StringObj;
+import ast.ArrayLiteral;
 import ast.BlockStatement;
 import ast.Boolean;
 import ast.CallExpression;
@@ -33,6 +37,7 @@ public class Evaluator {
     final BooleanObj TRUE = new BooleanObj(true);
     final BooleanObj FALSE = new BooleanObj(false);
     final NullObj NULL = new NullObj();
+    // public Environment Builtins = new Environment();
 
     public EvalObject eval(ast.ProgramNode node, Environment env) {
         if (node instanceof Program program) {
@@ -78,11 +83,8 @@ public class Evaluator {
             env.set(letStatement.identifier.value, value);
 
         } else if (node instanceof Identifier identifier) {
-            EvalObject value = env.get(identifier.value);
-            if (value == null) {
-                return newError("identifier not found:", identifier.value);
-            }
-            return value;
+            return evalIdentifier(identifier, env);
+
         } else if (node instanceof FunctionLiteral functionLiteral) {
             List<Identifier> params = functionLiteral.getParameters();
             BlockStatement body = functionLiteral.getBody();
@@ -93,14 +95,23 @@ public class Evaluator {
                 return func;
             }
             List<EvalObject> args = evalExpressions(callExpression.arguments, env);
-            EvalObject errorCheck = args.get(0);
-            if (args.size() == 1 && isError(errorCheck)) {
+
+            if (args.size() == 1 && isError(args.get(0))) {
                 return args.get(1);
             }
+
             return applyFunction(func, args);
 
         } else if (node instanceof StringLiteral stringExpression) {
             return new StringObj(stringExpression.value);
+        } else if (node instanceof ArrayLiteral arrayLiteral) {
+            List<EvalObject> elements = evalExpressions(arrayLiteral.getElements(), env);
+
+            if (elements.size() == 1 && isError(elements.get(0))) {
+                return elements.get(0);
+            }
+            return new ArrayObj(elements);
+
         } else {
             return this.NULL;
         }
@@ -108,10 +119,29 @@ public class Evaluator {
         return this.NULL;
     }
 
+    public EvalObject evalIdentifier(Identifier ident, Environment env) {
+        EvalObject value = env.get(ident.value);
+        if (value != null) {
+            return value;
+
+        }
+        EvalObject builtin = Builtins.builtins.get(ident.value);
+        if (builtin != null) {
+            return builtin;
+        }
+        return newError("identifier not found:", ident.value);
+
+    }
+
     public EvalObject applyFunction(EvalObject func, List<EvalObject> args) {
-        if (!(func instanceof FunctionObj)) {
+        if (!(func instanceof FunctionObj) && !(func instanceof Builtin)) {
             return newError("not a function:", func.type());
         }
+        if (func instanceof Builtin builtin) {
+            // Call the builtin function with the arguments
+            return builtin.fn.apply(args);
+        }
+
         FunctionObj function = (FunctionObj) func;
         Environment extendedEnvironment = extendEnvironment(function, args);
         EvalObject evaluated = eval(function.body, extendedEnvironment);
@@ -212,6 +242,8 @@ public class Evaluator {
     public EvalObject evalInfixExpression(EvalObject left, String operator, EvalObject right) {
         if (left instanceof IntegerObj leftInt && right instanceof IntegerObj rightInt) {
             return evalIntegerInfixExpression(leftInt, operator, rightInt);
+        } else if (left instanceof StringObj leftString && right instanceof StringObj rightString && operator.equals("+")) {
+            return new StringObj(leftString.value + rightString.value);
         } else {
             if (!left.type().equals(right.type())) {
                 return newError("type mismatch:", left.type(), operator, right.type());

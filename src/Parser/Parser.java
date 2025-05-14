@@ -3,6 +3,7 @@ package Parser;
 import Lexer.Lexer;
 import Token.Token;
 import Token.TokenType;
+import ast.ArrayLiteral;
 import ast.BlockStatement;
 import ast.Boolean;
 import ast.CallExpression;
@@ -69,6 +70,8 @@ public class Parser {
         registerPrefixFn(TokenType.FALSE, () -> parseBoolean());
         registerPrefixFn(TokenType.IF, () -> parseIfExpression());
         registerPrefixFn(TokenType.STRING, () -> parseStringLiteral());
+        registerPrefixFn(TokenType.FUNCTION, () -> parseFunctionLiteral());
+        registerPrefixFn(TokenType.LBRACKET, () -> parseArrayLiteral());
 
     }
 
@@ -310,14 +313,21 @@ public class Parser {
 
     public Expression parseCallExpression(Expression function) {
         CallExpression expression = new CallExpression(curToken, function);
-        expression.arguments = parseCallArguments();
+        expression.arguments = parseArgumentList(TokenType.RPAREN);
         return expression;
     }
 
-    public List<Expression> parseCallArguments() {
+    public Expression parseArrayLiteral() {
+        ArrayLiteral arr = new ArrayLiteral(curToken);
+        List<Expression> elements = parseArgumentList(TokenType.RBRACKET);
+        arr.setElements(elements);
+        return arr;
+    }
+
+    public List<Expression> parseArgumentList(String end) {
         List<Expression> args = new ArrayList<>();
 
-        if (peekTokenIs(TokenType.RPAREN)) {
+        if (peekTokenIs(end)) {
             nextToken();
             return args;
         }
@@ -331,7 +341,7 @@ public class Parser {
 
         }
 
-        if (!expectPeek(TokenType.RPAREN)) {
+        if (!expectPeek(end)) {
             return null;
         }
         return args;

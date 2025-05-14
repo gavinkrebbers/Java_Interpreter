@@ -19,7 +19,8 @@ public class LexerTest {
                 + "};\n"
                 + "let result = add(five, ten);"
                 + "\" string :3 \""
-                + "[1,2,3]";
+                + "[1,2,3]"
+                + "{\"foo\" : \"bar\"}";
 
         Token[] expectedTokens = {
             new Token(new TokenType(TokenType.LET), "let"),
@@ -66,6 +67,11 @@ public class LexerTest {
             new Token(new TokenType(TokenType.COMMA), ","),
             new Token(new TokenType(TokenType.INT), "3"),
             new Token(new TokenType(TokenType.RBRACKET), "]"),
+            new Token(new TokenType(TokenType.LBRACE), "{"),
+            new Token(new TokenType(TokenType.STRING), "foo"),
+            new Token(new TokenType(TokenType.COLON), ":"),
+            new Token(new TokenType(TokenType.STRING), "bar"),
+            new Token(new TokenType(TokenType.RBRACE), "}"),
             new Token(new TokenType(TokenType.EOF), "")
         };
 
