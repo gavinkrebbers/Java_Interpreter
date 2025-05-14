@@ -18,6 +18,8 @@ import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
+import ast.StringLiteral;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +68,7 @@ public class Parser {
         registerPrefixFn(TokenType.TRUE, () -> parseBoolean());
         registerPrefixFn(TokenType.FALSE, () -> parseBoolean());
         registerPrefixFn(TokenType.IF, () -> parseIfExpression());
-        registerPrefixFn(TokenType.FUNCTION, () -> parseFunctionLiteral());
+        registerPrefixFn(TokenType.STRING, () -> parseStringLiteral());
 
     }
 
@@ -333,6 +335,10 @@ public class Parser {
             return null;
         }
         return args;
+    }
+
+    public Expression parseStringLiteral() {
+        return new StringLiteral(curToken, curToken.literal);
     }
 
     public void nextToken() {

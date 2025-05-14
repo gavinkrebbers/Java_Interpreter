@@ -28,6 +28,7 @@ public class TokenType {
     public static final String EQ = "==";
     public static final String NOT_EQ = "!=";
 
+    public static final String STRING = "STRING";
     // Delimiters
     public static final String COMMA = ",";
     public static final String SEMICOLON = ";";
@@ -36,6 +37,8 @@ public class TokenType {
     public static final String RPAREN = ")";
     public static final String LBRACE = "{";
     public static final String RBRACE = "}";
+    public static final String LBRACKET = "[";
+    public static final String RBRACKET = "]";
 
     // Keywords
     public static final String FUNCTION = "FUNCTION";

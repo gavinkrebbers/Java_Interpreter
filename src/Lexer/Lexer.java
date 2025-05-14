@@ -37,6 +37,15 @@ public class Lexer {
             case '*':
                 tok = new Token(new TokenType(TokenType.ASTERISK), Character.toString(ch));
                 break;
+            case '"':
+                StringBuilder output = new StringBuilder();
+                readChar();
+                while (ch != '"') {
+                    output.append(ch);
+                    readChar();
+                }
+                tok = new Token(new TokenType(TokenType.STRING), output.toString());
+                break;
             case '!':
                 if (peekChar() == '=') {
                     tok = new Token(new TokenType(TokenType.NOT_EQ), "!=");
@@ -77,9 +86,16 @@ public class Lexer {
             case '}':
                 tok = new Token(new TokenType(TokenType.RBRACE), Character.toString(ch));
                 break;
+            case '[':
+                tok = new Token(new TokenType(TokenType.LBRACKET), Character.toString(ch));
+                break;
+            case ']':
+                tok = new Token(new TokenType(TokenType.RBRACKET), Character.toString(ch));
+                break;
             case '\0':
                 tok = new Token(new TokenType(TokenType.EOF), "");
                 break;
+
             default:
                 if (isLetter(ch)) {
 

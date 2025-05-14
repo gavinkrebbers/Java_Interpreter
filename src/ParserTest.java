@@ -620,4 +620,25 @@ public class ParserTest {
         testInfixExpression(args.get(2), 4, "+", 5);
     }
 
+    @Test
+    public void testStringLiteralExpression() {
+        String input = "\"hello world\";";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a StringLiteral", exprStmt.expression instanceof ast.StringLiteral);
+
+        ast.StringLiteral literal = (ast.StringLiteral) exprStmt.expression;
+        assertEquals("literal.Value not \"hello world\"", "hello world", literal.value);
+    }
 }

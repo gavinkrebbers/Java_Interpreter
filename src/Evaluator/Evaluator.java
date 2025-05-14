@@ -8,6 +8,7 @@ import EvalObject.FunctionObj;
 import EvalObject.IntegerObj;
 import EvalObject.NullObj;
 import EvalObject.ReturnObj;
+import EvalObject.StringObj;
 import ast.BlockStatement;
 import ast.Boolean;
 import ast.CallExpression;
@@ -23,6 +24,7 @@ import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
+import ast.StringLiteral;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -97,6 +99,8 @@ public class Evaluator {
             }
             return applyFunction(func, args);
 
+        } else if (node instanceof StringLiteral stringExpression) {
+            return new StringObj(stringExpression.value);
         } else {
             return this.NULL;
         }

@@ -6,6 +6,7 @@ import EvalObject.EvalObject;
 import EvalObject.FunctionObj;
 import EvalObject.IntegerObj;
 import EvalObject.NullObj;
+import EvalObject.StringObj;
 import Evaluator.Evaluator;
 import Lexer.Lexer;
 import Parser.Parser;
@@ -286,6 +287,17 @@ public class EvaluatorTest {
             IntegerObj result = (IntegerObj) evaluated;
             assertEquals("Incorrect result for input: " + tt.input, tt.expected, result.getValue());
         }
+    }
+
+    @Test
+    public void testStringLiteral() {
+        String input = "\"Hello World!\"";
+
+        EvalObject evaluated = testEval(input);
+        assertTrue("Object is not StringObj", evaluated instanceof StringObj);
+
+        StringObj str = (StringObj) evaluated;
+        assertEquals("String has wrong value", "Hello World!", str.value);
     }
 
     private EvalObject testEval(String input) {

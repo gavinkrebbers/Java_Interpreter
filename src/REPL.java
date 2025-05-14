@@ -21,8 +21,6 @@ public class REPL {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
                 System.out.print(PROMPT);
                 String input = reader.readLine();
-                // String input = "let fib = fn(n){return fib(n - 1) + fib(n - 2)  }";
-                // String input = "let fib = fn(n){if(n==1){return 1} if(n==0){return 1} return fib(n-1) + fib(n-2)  }";
                 Lexer l = new Lexer(input);
                 Parser p = new Parser(l);
                 Program program = p.parseProgram();
