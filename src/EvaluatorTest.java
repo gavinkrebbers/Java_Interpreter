@@ -18,6 +18,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 import org.junit.Test;
@@ -365,6 +368,74 @@ public class EvaluatorTest {
             return false;
         }
         return true;
+    }
+
+    @Test
+    public void testBuiltinFunctions() {
+        class TestCase {
+
+            String input;
+            Object expected;
+
+            TestCase(String input, Object expected) {
+                this.input = input;
+                this.expected = expected;
+            }
+        }
+
+        TestCase[] tests = {
+            new TestCase("len(\"\")", 0),
+            new TestCase("len(\"four\")", 4),
+            new TestCase("len(\"hello world\")", 11),
+            new TestCase("len(1)", "function `len` expects STRING input. got INTEGER"),
+            new TestCase("len(\"one\", \"two\")", "function `len` expects 1 argument. got  2"),
+            new TestCase("len([1, 2, 3])", 3),
+            new TestCase("len([])", 0),
+            // new TestCase("puts(\"hello\", \"world!\")", null),
+            new TestCase("first([1, 2, 3])", 1),
+            new TestCase("first([])", null),
+            new TestCase("first(1)", "function `first` expects ARRAY input. got INTEGER"),
+            new TestCase("last([1, 2, 3])", 3),
+            new TestCase("last([])", null),
+            new TestCase("last(1)", "function `last` expects ARRAY input. got INTEGER"),
+            new TestCase("rest([1, 2, 3])", Arrays.asList(2, 3)),
+            new TestCase("rest([])", null),
+            new TestCase("push([], 1)", Collections.singletonList(1)),
+            new TestCase("push(1, 1)", "function `len` expects ARRAY, OBJECT input. got INTEGER, INTEGER")
+        };
+
+        for (TestCase tt : tests) {
+            EvalObject evaluated = testEval(tt.input);
+
+            if (tt.expected == null) {
+                assertTrue("Expected NullObj", evaluated instanceof NullObj);
+                continue;
+            }
+
+            if (tt.expected instanceof Integer) {
+                assertTrue("Expected IntegerObj", evaluated instanceof IntegerObj);
+                assertEquals("Integer value mismatch",
+                        tt.expected, ((IntegerObj) evaluated).getValue());
+            } else if (tt.expected instanceof List) {
+                assertTrue("Expected ArrayObj", evaluated instanceof ArrayObj);
+                List<EvalObject> elements = ((ArrayObj) evaluated).getElements();
+                assertEquals("Array length mismatch",
+                        ((List<?>) tt.expected).size(), elements.size());
+
+                for (int i = 0; i < elements.size(); i++) {
+                    long expectedVal = (Integer) ((List<?>) tt.expected).get(i);
+                    assertTrue("Element is not IntegerObj",
+                            elements.get(i) instanceof IntegerObj);
+                    assertEquals("Array element value mismatch",
+                            expectedVal,
+                            ((IntegerObj) elements.get(i)).getValue());
+                }
+            } else if (tt.expected instanceof String) {
+                assertTrue("Expected ErrorObj", evaluated instanceof ErrorObj);
+                assertEquals("Error message mismatch",
+                        tt.expected, ((ErrorObj) evaluated).getMessage());
+            }
+        }
     }
 
     private EvalObject testEval(String input) {

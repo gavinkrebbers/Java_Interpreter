@@ -12,6 +12,7 @@ import ast.ExpressionStatement;
 import ast.FunctionLiteral;
 import ast.Identifier;
 import ast.IfExpression;
+import ast.IndexExpression;
 import ast.InfixExpression;
 import ast.IntegerLiteral;
 import ast.LetStatement;
@@ -45,6 +46,7 @@ public class Parser {
     final int PRODUCT = 4;
     final int PREFIX = 5;
     final int CALL = 6;
+    final int INDEX = 7;
 
     public Parser(Lexer lexer) {
         this.lexer = lexer;
@@ -85,6 +87,7 @@ public class Parser {
         registerInfixFn(TokenType.LT, (left) -> parseInfixExpression(left));
         registerInfixFn(TokenType.GT, (left) -> parseInfixExpression(left));
         registerInfixFn(TokenType.LPAREN, (left) -> parseCallExpression(left));
+        registerInfixFn(TokenType.LBRACKET, (left) -> parseIndexExpression(left));
 
     }
 
@@ -98,6 +101,7 @@ public class Parser {
         precedences.put("/", PRODUCT);
         precedences.put("*", PRODUCT);
         precedences.put("(", CALL);
+        precedences.put("[", INDEX);
     }
 
     public Program parseProgram() {
@@ -345,6 +349,16 @@ public class Parser {
             return null;
         }
         return args;
+    }
+
+    public Expression parseIndexExpression(Expression left) {
+        IndexExpression exp = new IndexExpression(curToken, left);
+        nextToken();
+        exp.index = parseExpression(LOWEST);
+        if (!expectPeek(TokenType.RBRACKET)) {
+            return null;
+        }
+        return exp;
     }
 
     public Expression parseStringLiteral() {

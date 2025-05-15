@@ -21,6 +21,7 @@ import ast.ExpressionStatement;
 import ast.FunctionLiteral;
 import ast.Identifier;
 import ast.IfExpression;
+import ast.IndexExpression;
 import ast.InfixExpression;
 import ast.IntegerLiteral;
 import ast.LetStatement;
@@ -112,6 +113,16 @@ public class Evaluator {
             }
             return new ArrayObj(elements);
 
+        } else if (node instanceof IndexExpression indexExpression) {
+            EvalObject left = eval(indexExpression.left, env);
+            if (isError(left)) {
+                return left;
+            }
+            EvalObject index = eval(indexExpression.index, env);
+            if (isError(index)) {
+                return index;
+            }
+            return evalIndexExpression(left, index);
         } else {
             return this.NULL;
         }
@@ -294,6 +305,23 @@ public class Evaluator {
             return eval(ifExpression.alternative, env);
         }
         return this.NULL;
+
+    }
+
+    public EvalObject evalIndexExpression(EvalObject left, EvalObject index) {
+        if (left instanceof ArrayObj arrObj) {
+            if (!(index instanceof IntegerObj)) {
+                return newError("The type " + index.type() + " is not valid for an index expression");
+
+            }
+            IntegerObj integerObj = (IntegerObj) index;
+            if (integerObj.value >= arrObj.elements.size()) {
+                return newError("Index" + integerObj.value + " is out of bounds for array sized " + arrObj.elements.size());
+
+            }
+            return arrObj.elements.get(((IntegerObj) index).value);
+        }
+        return newError("index operator not supported: ", left.type());
 
     }
 

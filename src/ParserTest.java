@@ -7,6 +7,7 @@ import ast.ExpressionStatement;
 import ast.FunctionLiteral;
 import ast.Identifier;
 import ast.IfExpression;
+import ast.IndexExpression;
 import ast.InfixExpression;
 import ast.IntegerLiteral;
 import ast.LetStatement;
@@ -673,5 +674,35 @@ public class ParserTest {
         // Test third element (infix expression)
         assertTrue("Third element test failed",
                 testInfixExpression(array.getElements().get(2), 3, "+", 3));
+    }
+
+    @Test
+    public void testParsingIndexExpressions() {
+        String input = "myArray[1 + 1]";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not an IndexExpression",
+                exprStmt.expression instanceof IndexExpression);
+
+        IndexExpression indexExp = (IndexExpression) exprStmt.expression;
+
+        // Test the left side (identifier)
+        assertTrue("Left expression is not an Identifier",
+                testIdentifier(indexExp.left, "myArray"));
+
+        // Test the index expression (infix expression)
+        assertTrue("Index expression test failed",
+                testInfixExpression(indexExp.index, 1, "+", 1));
     }
 }

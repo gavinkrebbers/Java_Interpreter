@@ -34,10 +34,26 @@ public class Builtins {
                 if (args.size() != 1) {
                     return newError("function `first` expects 1 argument. got ", args.size());
                 } else if (args.get(0) instanceof ArrayObj arrayObj) {
+                    if (arrayObj.elements.isEmpty()) {
+                        return NULL;
+                    }
                     return arrayObj.elements.get(0);
 
                 }
                 return newError("function `first` expects ARRAY input. got", args.get(0).type());
+
+            }));
+            builtins.put("last", new Builtin(args -> {
+                if (args.size() != 1) {
+                    return newError("function `last` expects 1 argument. got ", args.size());
+                } else if (args.get(0) instanceof ArrayObj arrayObj) {
+                    if (arrayObj.elements.isEmpty()) {
+                        return NULL;
+                    }
+                    return arrayObj.elements.get(arrayObj.elements.size() - 1);
+
+                }
+                return newError("function `last` expects ARRAY input. got", args.get(0).type());
 
             }));
             builtins.put("rest", new Builtin(args -> {
@@ -47,6 +63,9 @@ public class Builtins {
                     ArrayObj outArr = new ArrayObj();
                     for (int i = 1; i < arrayObj.elements.size(); i++) {
                         outArr.elements.add(arrayObj.elements.get(i));
+                    }
+                    if (outArr.elements.isEmpty()) {
+                        return NULL;
                     }
                     return outArr;
 
