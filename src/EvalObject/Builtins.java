@@ -89,6 +89,12 @@ public class Builtins {
                 ArrayObj arr = new ArrayObj(outputElements);
                 return arr;
             }));
+            builtins.put("print", new Builtin(args -> {
+                for (EvalObject obj : args) {
+                    System.out.println(obj.inspect());
+                }
+                return NULL;
+            }));
 
         }
     }

@@ -1,11 +1,18 @@
 package EvalObject;
 
-public class StringObj implements EvalObject {
+import Token.TokenType;
+
+public class StringObj implements EvalObject, Hashable {
 
     public String value;
 
     public StringObj(String value) {
         this.value = value;
+    }
+
+    @Override
+    public HashKey generateHashKey() {
+        return new HashKey(TokenType.STRING, value.hashCode());
     }
 
     @Override

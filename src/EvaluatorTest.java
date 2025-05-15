@@ -5,22 +5,33 @@ import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
 import EvalObject.FunctionObj;
+import EvalObject.HashKey;
+import EvalObject.HashObj;
 import EvalObject.IntegerObj;
 import EvalObject.NullObj;
+import EvalObject.Pair;
 import EvalObject.StringObj;
 import Evaluator.Evaluator;
 import Lexer.Lexer;
 import Parser.Parser;
+import ast.Expression;
+import ast.ExpressionStatement;
+import ast.HashLiteral;
 import ast.Program;
+import ast.Statement;
+import ast.StringLiteral;
 import junit.framework.TestCase;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.Test;
@@ -434,6 +445,85 @@ public class EvaluatorTest {
                 assertTrue("Expected ErrorObj", evaluated instanceof ErrorObj);
                 assertEquals("Error message mismatch",
                         tt.expected, ((ErrorObj) evaluated).getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void testHashLiterals() {
+        String input = """
+        let two = "two";
+        {
+            "one": 10 - 9,
+            two: 1 + 1,
+            "thr" + "ee": 6 / 2,
+            4: 4,
+            true: 5,
+            false: 6
+        }
+        """;
+
+        EvalObject evaluated = testEval(input);
+        assertTrue("Object is not HashObj", evaluated instanceof HashObj);
+
+        HashObj result = (HashObj) evaluated;
+
+        // Create expected values
+        Map<HashKey, Integer> expected = new HashMap<>();
+        expected.put(new StringObj("one").generateHashKey(), 1);
+        expected.put(new StringObj("two").generateHashKey(), 2);
+        expected.put(new StringObj("three").generateHashKey(), 3);
+        expected.put(new IntegerObj(4).generateHashKey(), 4);
+        expected.put(new BooleanObj(true).generateHashKey(), 5);
+        expected.put(new BooleanObj(false).generateHashKey(), 6);
+
+        // Verify number of pairs
+        assertEquals("Hash has wrong number of pairs",
+                expected.size(), result.map.size());
+
+        // Verify each pair
+        for (Map.Entry<HashKey, Integer> entry : expected.entrySet()) {
+            Pair pair = result.map.get(entry.getKey());
+            assertNotNull("No pair for given key in Pairs", pair);
+            assertTrue("Value is not IntegerObj", pair.value instanceof IntegerObj);
+            assertEquals("Integer value mismatch",
+                    entry.getValue().longValue(),
+                    ((IntegerObj) pair.value).getValue());
+        }
+    }
+
+    @Test
+    public void testHashIndexExpressions() {
+        class TestCase {
+
+            String input;
+            Object expected;
+
+            TestCase(String input, Object expected) {
+                this.input = input;
+                this.expected = expected;
+            }
+        }
+
+        TestCase[] tests = {
+            new TestCase("{\"foo\": 5}[\"foo\"]", 5),
+            new TestCase("{\"foo\": 5}[\"bar\"]", null),
+            new TestCase("let key = \"foo\"; {\"foo\": 5}[key]", 5),
+            new TestCase("{}[\"foo\"]", null),
+            new TestCase("{5: 5}[5]", 5),
+            new TestCase("{true: 5}[true]", 5),
+            new TestCase("{false: 5}[false]", 5),};
+
+        for (TestCase tt : tests) {
+            EvalObject evaluated = testEval(tt.input);
+
+            if (tt.expected instanceof Integer) {
+                assertTrue("Expected IntegerObj for input: " + tt.input, evaluated instanceof IntegerObj);
+                IntegerObj result = (IntegerObj) evaluated;
+                assertEquals("Incorrect integer value for input: " + tt.input,
+                        ((Integer) tt.expected).longValue(), result.getValue());
+            } else {
+                assertTrue("Expected NullObj for input: " + tt.input, evaluated instanceof NullObj);
             }
         }
     }

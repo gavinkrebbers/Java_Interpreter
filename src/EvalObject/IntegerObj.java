@@ -1,6 +1,8 @@
 package EvalObject;
 
-public class IntegerObj implements EvalObject {
+import Token.TokenType;
+
+public class IntegerObj implements EvalObject, Hashable {
 
     public int value;
 
@@ -14,6 +16,11 @@ public class IntegerObj implements EvalObject {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    @Override
+    public HashKey generateHashKey() {
+        return new HashKey(TokenType.INT, value);
     }
 
     @Override

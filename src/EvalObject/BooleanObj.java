@@ -1,6 +1,6 @@
 package EvalObject;
 
-public class BooleanObj implements EvalObject {
+public class BooleanObj implements EvalObject, Hashable {
 
     public boolean value;
 
@@ -10,6 +10,16 @@ public class BooleanObj implements EvalObject {
 
     public boolean getValue() {
         return this.value;
+    }
+
+    @Override
+    public HashKey generateHashKey() {
+        if (value) {
+            return new HashKey("BOOLEAN", 1);
+
+        }
+        return new HashKey("BOOLEAN", 0);
+
     }
 
     @Override

@@ -10,6 +10,7 @@ import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
 import ast.FunctionLiteral;
+import ast.HashLiteral;
 import ast.Identifier;
 import ast.IfExpression;
 import ast.IndexExpression;
@@ -74,6 +75,7 @@ public class Parser {
         registerPrefixFn(TokenType.STRING, () -> parseStringLiteral());
         registerPrefixFn(TokenType.FUNCTION, () -> parseFunctionLiteral());
         registerPrefixFn(TokenType.LBRACKET, () -> parseArrayLiteral());
+        registerPrefixFn(TokenType.LBRACE, () -> parseHashLiteral());
 
     }
 
@@ -359,6 +361,29 @@ public class Parser {
             return null;
         }
         return exp;
+    }
+
+    public Expression parseHashLiteral() {
+        HashLiteral hash = new HashLiteral(curToken);
+        while (!(peekTokenIs(TokenType.RBRACE))) {
+            nextToken();
+            Expression key = parseExpression(LOWEST);
+            if (!expectPeek(TokenType.COLON)) {
+                return null;
+            }
+
+            nextToken();
+            Expression value = parseExpression(LOWEST);
+            hash.pairs.put(key, value);
+            if (!peekTokenIs(TokenType.RBRACE) && !expectPeek(TokenType.COMMA)) {
+                return null;
+            }
+
+        }
+        if (!expectPeek(TokenType.RBRACE)) {
+            return null;
+        }
+        return hash;
     }
 
     public Expression parseStringLiteral() {

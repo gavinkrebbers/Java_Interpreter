@@ -8,6 +8,8 @@ import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
 import EvalObject.FunctionObj;
+import EvalObject.HashObj;
+import EvalObject.Hashable;
 import EvalObject.IntegerObj;
 import EvalObject.NullObj;
 import EvalObject.ReturnObj;
@@ -19,6 +21,7 @@ import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
 import ast.FunctionLiteral;
+import ast.HashLiteral;
 import ast.Identifier;
 import ast.IfExpression;
 import ast.IndexExpression;
@@ -32,6 +35,7 @@ import ast.Statement;
 import ast.StringLiteral;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Evaluator {
 
@@ -123,6 +127,8 @@ public class Evaluator {
                 return index;
             }
             return evalIndexExpression(left, index);
+        } else if (node instanceof HashLiteral hash) {
+            return evalHashLiteral(hash, env);
         } else {
             return this.NULL;
         }
@@ -320,9 +326,31 @@ public class Evaluator {
 
             }
             return arrObj.elements.get(((IntegerObj) index).value);
+        } else if (left instanceof HashObj hash) {
+            if (!(index instanceof Hashable)) {
+                return newError("Index " + index.type() + " is not valid for an index expression on HASH");
+            }
+            return hash.atKey(index);
         }
         return newError("index operator not supported: ", left.type());
 
+    }
+
+    public EvalObject evalHashLiteral(HashLiteral hashLiteral, Environment env) {
+        HashObj hash = new HashObj();
+        for (Map.Entry<Expression, Expression> entry : hashLiteral.pairs.entrySet()) {
+            EvalObject key = eval(entry.getKey(), env);
+            if (!(key instanceof Hashable)) {
+                return null;
+            }
+            EvalObject value = eval(entry.getValue(), env);
+            if (value == null) {
+                return null;
+            }
+            hash.add(key, value);
+
+        }
+        return hash;
     }
 
     public boolean isTruthy(EvalObject obj) {

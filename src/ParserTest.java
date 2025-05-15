@@ -19,7 +19,10 @@ import ast.Statement;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.ObjDoubleConsumer;
 
 public class ParserTest {
@@ -704,5 +707,103 @@ public class ParserTest {
         // Test the index expression (infix expression)
         assertTrue("Index expression test failed",
                 testInfixExpression(indexExp.index, 1, "+", 1));
+    }
+
+    @Test
+    public void testParsingHashLiteralsStringKeys() {
+        String input = "{\"one\": 1, \"two\": 2, \"three\": 3}";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a HashLiteral", exprStmt.expression instanceof ast.HashLiteral);
+
+        ast.HashLiteral hash = (ast.HashLiteral) exprStmt.expression;
+        assertEquals("hash.Pairs has wrong length", 3, hash.pairs.size());
+
+        Map<String, Integer> expected = new HashMap<>();
+        expected.put("one", 1);
+        expected.put("two", 2);
+        expected.put("three", 3);
+
+        for (Map.Entry<Expression, Expression> entry : hash.pairs.entrySet()) {
+            Expression key = entry.getKey();
+            assertTrue("key is not a StringLiteral", key instanceof ast.StringLiteral);
+
+            ast.StringLiteral literal = (ast.StringLiteral) key;
+            int expectedValue = expected.get(literal.value);
+            assertNotNull("Unexpected key in hash: " + literal.value, expectedValue);
+
+            testIntegerLiteral(entry.getValue(), expectedValue);
+        }
+    }
+
+    @Test
+    public void testParsingEmptyHashLiteral() {
+        String input = "{}";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a HashLiteral", exprStmt.expression instanceof ast.HashLiteral);
+
+        ast.HashLiteral hash = (ast.HashLiteral) exprStmt.expression;
+        assertTrue("hash.Pairs should be empty", hash.pairs.isEmpty());
+    }
+
+    @Test
+    public void testParsingHashLiteralsWithExpressions() {
+        String input = "{\"one\": 0 + 1, \"two\": 10 - 8, \"three\": 15 / 5}";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not an ExpressionStatement", stmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) stmt;
+        assertTrue("Expression is not a HashLiteral", exprStmt.expression instanceof ast.HashLiteral);
+
+        ast.HashLiteral hash = (ast.HashLiteral) exprStmt.expression;
+        assertEquals("hash.Pairs has wrong length", 3, hash.pairs.size());
+
+        Map<String, Consumer<Expression>> tests = new HashMap<>();
+        tests.put("one", e -> testInfixExpression(e, 0, "+", 1));
+        tests.put("two", e -> testInfixExpression(e, 10, "-", 8));
+        tests.put("three", e -> testInfixExpression(e, 15, "/", 5));
+
+        for (Map.Entry<Expression, Expression> entry : hash.pairs.entrySet()) {
+            Expression key = entry.getKey();
+            assertTrue("key is not a StringLiteral", key instanceof ast.StringLiteral);
+
+            ast.StringLiteral literal = (ast.StringLiteral) key;
+            Consumer<Expression> testFunc = tests.get(literal.value);
+            assertNotNull("No test function for key " + literal.value, testFunc);
+
+            testFunc.accept(entry.getValue());
+        }
     }
 }
