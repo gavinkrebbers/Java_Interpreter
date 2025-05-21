@@ -1,6 +1,6 @@
 # Java Interpreter
 
-Java Interpreter is a simple compiler and virtual machine for the Monkey programming language, written in Java. It parses, compiles, and executes Monkey source code using a custom bytecode format.
+Java Interpreter is a simple compiler and virtual machine for the Monkey programming language, written in Java. It parses, compiles, and executes source code. I am also creating a compiled version of the language which is the reason for the compiler and vm folders.
 
 ## Features
 
