@@ -5,10 +5,14 @@ Java Interpreter is a simple compiler and virtual machine for the Monkey program
 ## Features
 
 - Lexer, parser, and AST
+- Support for integer arithmetic and basic expressions
+- Includes Arrays, Strings, and HashMaps
+- Easily extensible for more language features
+
+# Future Features
+
 - Compiler that emits bytecode instructions
 - Virtual machine to execute compiled bytecode
-- Support for integer arithmetic and basic expressions
-- Easily extensible for more language features
 
 ## Project Structure
 
