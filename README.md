@@ -9,21 +9,15 @@ Java Interpreter is a simple compiler and virtual machine for the Monkey program
 - Includes Arrays, Strings, and HashMaps
 - Easily extensible for more language features
 
-### Future Features
 
-- Compiler that emits bytecode instructions
-- Virtual machine to execute compiled bytecode
 
 ## Project Structure
 
 - `ast/` — Abstract Syntax Tree definitions
-- `code/` — Bytecode instructions and helpers
-- `compiler/` — Compiler implementation
 - `evaluator/` — (Optional) AST evaluator
 - `lexer/` — Lexical analyzer
 - `object/` — Object system (integers, etc.)
 - `parser/` — Parser for the language
 - `repl/` — Read-Eval-Print Loop
 - `token/` — Token definitions
-- `vm/` — Virtual Machine for executing bytecode
 - `main.go` — Entry point
