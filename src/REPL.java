@@ -1,4 +1,6 @@
 
+import Compiler.Compiler;
+import Compiler.CompilerError;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
@@ -9,10 +11,16 @@ import ast.Program;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import vm.ExecutionError;
+import vm.VM;
 
 public class REPL {
 
-    public static void start() {
+    public REPL() {
+
+    }
+
+    public void start() {
         Environment env = new Environment();
 
         String PROMPT = ">>";
@@ -33,19 +41,41 @@ public class REPL {
                     return;
                 }
 
-                Evaluator e = new Evaluator();
-                EvalObject evaluated = e.eval(program, env);
-                if (evaluated instanceof ErrorObj err) {
-                    System.out.println(err.message);
-                } else if (evaluated != null) {
-                    System.out.println(evaluated.inspect());
-                    System.out.println("\n");
+                // Interpret(program, env);
+                Compiler comp = new Compiler();
+                try {
+                    comp.compile(program);
+
+                } catch (CompilerError e) {
+                    System.out.println("execution error" + e);
+                    return;
                 }
 
+                VM machine = new VM(comp.bytecode());
+                try {
+                    machine.run();
+                } catch (ExecutionError e) {
+                    System.out.println("execution error" + e);
+                    return;
+                }
+                EvalObject lastPopped = machine.stackTop();
+                System.out.println(lastPopped.inspect());
+                System.out.println("\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+    }
+
+    public static void Interpret(Program program, Environment env) {
+        Evaluator e = new Evaluator();
+        EvalObject evaluated = e.eval(program, env);
+        if (evaluated instanceof ErrorObj err) {
+            System.out.println(err.message);
+        } else if (evaluated != null) {
+            System.out.println(evaluated.inspect());
+            System.out.println("\n");
+        }
     }
 }

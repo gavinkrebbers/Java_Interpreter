@@ -1,8 +1,0 @@
-"filename", "language", "Java", "comment", "blank", "total"
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ParserTest.java", "Java", 90, 0, 35, 125
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\Parser\Parser.java", "Java", 60, -1, 19, 78
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\CallExpression.java", "Java", 35, 0, 9, 44
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Function.java", "Java", -17, 0, -8, -25
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\FunctionLiteral.java", "Java", 44, 0, 13, 57
-"c:\Computer Science Stuff\Interpreter\Monkey_java\src\ast\Program.java", "Java", 3, 0, 1, 4
-"Total", "-", 215, -1, 69, 283
