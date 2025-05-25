@@ -4,6 +4,7 @@ import Compiler.Bytecode;
 import EvalObject.BooleanObj;
 import EvalObject.EvalObject;
 import EvalObject.IntegerObj;
+import EvalObject.NullObj;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
@@ -15,6 +16,7 @@ public class VM {
 
     public static final BooleanObj TRUE = new BooleanObj(true);
     public static final BooleanObj FALSE = new BooleanObj(false);
+    public static final NullObj NULL_OBJ = new NullObj();
     public List<EvalObject> constants;
     public Instructions instructions;
 
@@ -30,18 +32,18 @@ public class VM {
 
     public void run() throws ExecutionError {
         byte[] ins = instructions.getInstructions();
+        String helper = instructions.toString();
         for (int ip = 0; ip < ins.length; ip++) {
             Opcode op = new Opcode(ins[ip]);
             byte opValue = op.getValue();
             switch (opValue) {
                 case Code.OpConstantValue:
-                    int constIndex = ((ins[ip + 1] & 0xFF) << 8) | (ins[ip + 2] & 0xFF);
+                    int constIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
                     ip += 2;
                     push(constants.get(constIndex));
                     break;
                 case Code.OpAddValue, Code.OpSubValue, Code.OpMulValue, Code.OpDivValue:
                     executeBinaryOperation(opValue);
-
                     break;
                 case Code.OpPopValue:
                     pop();
@@ -61,7 +63,23 @@ public class VM {
                 case Code.OpMinusValue:
                     executeMinusOperator();
                     break;
+                case Code.OpJumpNotTruthyValue:
 
+                    int landingIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+                    ip += 2;
+                    EvalObject condition = pop();
+                    if (!isTruthy(condition)) {
+                        ip = landingIndex - 1;
+                    }
+                    break;
+                case Code.OpJumpValue:
+
+                    ip = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]}) - 1;
+
+                    break;
+                case Code.OpNullValue:
+                    push(NULL_OBJ);
+                    break;
                 default:
                     throw new ExecutionError("unrecognized opcode" + op.getValue());
             }
@@ -189,10 +207,24 @@ public class VM {
 
     public BooleanObj nativeBoolToBoolObject(boolean input) {
         if (input) {
-            return TRUE;
+            return this.TRUE;
 
         }
-        return FALSE;
+        return this.FALSE;
+    }
+
+    public boolean isTruthy(EvalObject obj) {
+        if (obj instanceof BooleanObj bool) {
+            if (bool.value) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (obj instanceof NullObj) {
+            return false;
+        }
+        return true;
+
     }
 
 }

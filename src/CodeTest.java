@@ -1,5 +1,6 @@
 
 import code.Code;
+import code.Instructions;
 import org.junit.Test;
 
 import code.Opcode;
@@ -71,7 +72,7 @@ public class CodeTest {
         for (int i = 0; i < def.getOperandWidths().length; i++) {
             int width = def.getOperandWidths()[i];
             if (width == 2) {
-                operandsRead[i] = ((instruction[1 + offset] & 0xFF) << 8) | (instruction[2 + offset] & 0xFF);
+                operandsRead[i] = Instructions.readUint16(new byte[]{instruction[1 + offset], instruction[2 + offset]});
             }
             offset += width;
             n += width;

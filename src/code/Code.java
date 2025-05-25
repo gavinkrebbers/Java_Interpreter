@@ -7,20 +7,20 @@ public class Code {
 
     public static final byte OpConstantValue = 1;
     public static final byte OpPopValue = 2;
-
     public static final byte OpAddValue = 3;
     public static final byte OpSubValue = 4;
     public static final byte OpMulValue = 5;
     public static final byte OpDivValue = 6;
-
     public static final byte OpTrueValue = 7;
     public static final byte OpFalseValue = 8;
-
     public static final byte OpEqualValue = 9;
     public static final byte OpNotEqualValue = 10;
     public static final byte OpGreaterThanValue = 11;
     public static final byte OpMinusValue = 12;
     public static final byte OpBangValue = 13;
+    public static final byte OpJumpNotTruthyValue = 14;
+    public static final byte OpJumpValue = 15;
+    public static final byte OpNullValue = 16;
 
     public static final Opcode OpConstant = new Opcode(OpConstantValue);
     public static final Opcode OpPop = new Opcode(OpPopValue);
@@ -35,27 +35,33 @@ public class Code {
     public static final Opcode OpGreaterThan = new Opcode(OpGreaterThanValue);
     public static final Opcode OpMinus = new Opcode(OpMinusValue);
     public static final Opcode OpBang = new Opcode(OpBangValue);
+    public static final Opcode OpJumpNotTruthy = new Opcode(OpJumpNotTruthyValue);
+    public static final Opcode OpJump = new Opcode(OpJumpValue);
+    public static final Opcode OpNull = new Opcode(OpNullValue);
+
     private static final Map<Opcode, Definition> definitions = new HashMap<>();
 
     static {
-        definitions.put(OpConstant, new Definition("OpConstant", new int[]{2}));
-        definitions.put(OpPop, new Definition("OpPop", new int[]{}));
+        addDefinition(OpConstant, "OpConstant", 2);
+        addDefinition(OpPop, "OpPop");
+        addDefinition(OpAdd, "OpAdd");
+        addDefinition(OpSub, "OpSub");
+        addDefinition(OpMul, "OpMul");
+        addDefinition(OpDiv, "OpDiv");
+        addDefinition(OpTrue, "OpTrue");
+        addDefinition(OpFalse, "OpFalse");
+        addDefinition(OpEqual, "OpEqual");
+        addDefinition(OpNotEqual, "OpNotEqual");
+        addDefinition(OpGreaterThan, "OpGreaterThan");
+        addDefinition(OpMinus, "OpMinus");
+        addDefinition(OpBang, "OpBang");
+        addDefinition(OpJumpNotTruthy, "OpJumpNotTruthy", 2);
+        addDefinition(OpJump, "OpJump", 2);
+        addDefinition(OpNull, "OpNull");
+    }
 
-        definitions.put(OpAdd, new Definition("OpAdd", new int[]{}));
-        definitions.put(OpSub, new Definition("OpSub", new int[]{}));
-        definitions.put(OpMul, new Definition("OpMul", new int[]{}));
-        definitions.put(OpDiv, new Definition("OpDiv", new int[]{}));
-
-        definitions.put(OpTrue, new Definition("OpTrue", new int[]{}));
-        definitions.put(OpFalse, new Definition("OpFalse", new int[]{}));
-
-        definitions.put(OpEqual, new Definition("OpEqual", new int[]{}));
-        definitions.put(OpNotEqual, new Definition("OpNotEqual", new int[]{}));
-        definitions.put(OpGreaterThan, new Definition("OpGreaterThan", new int[]{}));
-
-        definitions.put(OpMinus, new Definition("OpMinus", new int[]{}));
-        definitions.put(OpBang, new Definition("OpBang", new int[]{}));
-
+    private static void addDefinition(Opcode opcode, String name, int... operandWidths) {
+        definitions.put(opcode, new Definition(name, operandWidths));
     }
 
     public static byte[] Make(Opcode op, int... operands) {
@@ -65,7 +71,6 @@ public class Code {
         }
 
         int instructionLen = 1;
-
         for (int width : def.getOperandWidths()) {
             instructionLen += width;
         }
@@ -74,24 +79,20 @@ public class Code {
         instruction[0] = op.getValue();
 
         int offset = 1;
-        for (int index = 0; index < operands.length; index++) {
-            int width = def.getOperandWidths()[index];
-            int operand = operands[index];
-            switch (width) {
-                case 2:
-                    instruction[offset] = (byte) ((operand >> 8) & 0xFF);
-                    instruction[offset + 1] = (byte) (operand & 0xFF);
-                    break;
+        for (int i = 0; i < operands.length; i++) {
+            int width = def.getOperandWidths()[i];
+            int operand = operands[i];
 
-                default:
-                    throw new IllegalArgumentException("Unsupported operand width: " + width);
+            if (width == 2) {
+                instruction[offset] = (byte) ((operand >> 8) & 0xFF);
+                instruction[offset + 1] = (byte) (operand & 0xFF);
+            } else {
+                throw new IllegalArgumentException("Unsupported operand width: " + width);
             }
             offset += width;
-
         }
 
         return instruction;
-
     }
 
     public Definition lookup(byte op) throws Exception {

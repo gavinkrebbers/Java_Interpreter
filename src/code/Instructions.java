@@ -19,6 +19,10 @@ public class Instructions {
         this.instructions = instructions;
     }
 
+    public static int readUint16(byte[] bytes) {
+        return ((bytes[0] & 0xFF) << 8) | (bytes[1] & 0xFF);
+    }
+
     public void addInstruction(byte[] newInstruction) {
         if (instructions == null) {
             instructions = newInstruction.clone();
@@ -49,7 +53,7 @@ public class Instructions {
                 for (int j = 0; j < operandsCount; j++) {
                     int width = operandWidths[j];
                     if (width == 2) {
-                        operands[j] = ((instructions[offset] & 0xFF) << 8) | (instructions[offset + 1] & 0xFF);
+                        operands[j] = readUint16(new byte[]{instructions[offset], instructions[offset + 1]});
                     }
                     offset += width;
                 }

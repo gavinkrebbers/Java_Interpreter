@@ -116,32 +116,46 @@ public class VMTest {
     @Test
     public void testBooleanExpressions() {
         VmTestCase[] tests = new VmTestCase[]{
-            // new VmTestCase("true", true),
-            // new VmTestCase("false", false),
-            // new VmTestCase("1 < 2", true),
-            // new VmTestCase("1 > 2", false),
-            // new VmTestCase("1 < 1", false),
-            // new VmTestCase("1 > 1", false),
-            // new VmTestCase("1 == 1", true),
-            // new VmTestCase("1 != 1", false),
-            // new VmTestCase("1 == 2", false),
-            // new VmTestCase("1 != 2", true),
-            // new VmTestCase("true == true", true),
-            // new VmTestCase("false == false", true),
-            // new VmTestCase("true == false", false),
-            // new VmTestCase("true != false", true),
-            // new VmTestCase("false != true", true),
-            // new VmTestCase("(1 < 2) == true", true),
-            // new VmTestCase("(1 < 2) == false", false),
-            // new VmTestCase("(1 > 2) == true", false),
-            // new VmTestCase("(1 > 2) == false", true),
+            new VmTestCase("true", true),
+            new VmTestCase("false", false),
+            new VmTestCase("1 < 2", true),
+            new VmTestCase("1 > 2", false),
+            new VmTestCase("1 < 1", false),
+            new VmTestCase("1 > 1", false),
+            new VmTestCase("1 == 1", true),
+            new VmTestCase("1 != 1", false),
+            new VmTestCase("1 == 2", false),
+            new VmTestCase("1 != 2", true),
+            new VmTestCase("true == true", true),
+            new VmTestCase("false == false", true),
+            new VmTestCase("true == false", false),
+            new VmTestCase("true != false", true),
+            new VmTestCase("false != true", true),
+            new VmTestCase("(1 < 2) == true", true),
+            new VmTestCase("(1 < 2) == false", false),
+            new VmTestCase("(1 > 2) == true", false),
+            new VmTestCase("(1 > 2) == false", true),
             new VmTestCase("!true", false),
-            new VmTestCase("!false", true), // new VmTestCase("!5", false),
-        // new VmTestCase("!!true", true),
-        // new VmTestCase("!!false", false),
-        // new VmTestCase("!!5", true),
-        };
+            new VmTestCase("!false", true),
+            new VmTestCase("!5", false),
+            new VmTestCase("!!true", true),
+            new VmTestCase("!!false", false),
+            new VmTestCase("!!5", true),};
         runVmTests(tests);
 
+    }
+
+    @Test
+    public void testConditionals() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase("if (true) { 10 }", 10),
+            new VmTestCase("if (true) { 10 } else { 20 }", 10),
+            new VmTestCase("if (false) { 10 } else { 20 }", 20),
+            new VmTestCase("if (1) { 10 }", 10),
+            new VmTestCase("if (1 < 2) { 10 }", 10),
+            new VmTestCase("if (1 < 2) { 10 } else { 20 }", 10),
+            new VmTestCase("if (1 > 2) { 10 } else { 20 }", 20)
+        };
+        runVmTests(tests);
     }
 }
