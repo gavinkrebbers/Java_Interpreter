@@ -41,8 +41,59 @@ public class CompilerTest {
                         "1 + 2",
                         Arrays.asList(1, 2),
                         Arrays.asList(
-                                codeInstance.Make(Code.OpConstant, 0),
-                                codeInstance.Make(Code.OpConstant, 1)
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpAdd),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "1; 2",
+                        Arrays.asList(1, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpPop),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "2 - 1",
+                        Arrays.asList(2, 1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpSub),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "2 * 3",
+                        Arrays.asList(2, 3),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpMul),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "6 / 2",
+                        Arrays.asList(6, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpDiv),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "-1",
+                        Arrays.asList(1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpMinus),
+                                Code.Make(Code.OpPop)
                         )
                 )
         );
@@ -50,28 +101,96 @@ public class CompilerTest {
     }
 
     @Test
-    public void testInstructionsString() {
-        Code codeInstance = new Code();
-        List<byte[]> instructions = Arrays.asList(
-                codeInstance.Make(Code.OpConstant, 1),
-                codeInstance.Make(Code.OpConstant, 2),
-                codeInstance.Make(Code.OpConstant, 65535)
+    public void testBooleanExpressions() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "true",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpTrue),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "false",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpFalse),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "1 > 2",
+                        Arrays.asList(1, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpGreaterThan),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "1 < 2",
+                        Arrays.asList(2, 1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpGreaterThan),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "1 == 2",
+                        Arrays.asList(1, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpEqual),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "1 != 2",
+                        Arrays.asList(1, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpNotEqual),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "true == false",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpTrue),
+                                Code.Make(Code.OpFalse),
+                                Code.Make(Code.OpEqual),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "true != false",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpTrue),
+                                Code.Make(Code.OpFalse),
+                                Code.Make(Code.OpNotEqual),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "!true",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpTrue),
+                                Code.Make(Code.OpBang),
+                                Code.Make(Code.OpPop)
+                        )
+                )
         );
-        String expected = "0000 OpConstant 1\n"
-                + "0003 OpConstant 2\n"
-                + "0006 OpConstant 65535\n";
-        int totalLength = 0;
-        for (byte[] ins : instructions) {
-            totalLength += ins.length;
-        }
-        byte[] concatted = new byte[totalLength];
-        int pos = 0;
-        for (byte[] ins : instructions) {
-            System.arraycopy(ins, 0, concatted, pos, ins.length);
-            pos += ins.length;
-        }
-        code.Instructions inst = new code.Instructions(concatted);
-        assertEquals("instructions wrongly formatted.\nwant=" + expected + "\ngot=" + inst.toString(), expected, inst.toString());
+        runCompilerTests(tests);
+
     }
 
     private void runCompilerTests(List<CompilerTestCase> tests) {
@@ -82,7 +201,7 @@ public class CompilerTest {
                 compiler.compile(program);
 
             } catch (CompilerError e) {
-                System.out.println("execution error" + e);
+                fail("compilation error: " + e.getMessage());
                 return;
             }
             Bytecode bytecode = compiler.bytecode();

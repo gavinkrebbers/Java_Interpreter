@@ -45,6 +45,7 @@ public class Instructions {
                 int operandsCount = operandWidths.length;
                 int[] operands = new int[operandsCount];
                 int offset = i + 1;
+                sb.append(String.format("%04d %s", i, def.getName()));
                 for (int j = 0; j < operandsCount; j++) {
                     int width = operandWidths[j];
                     if (width == 2) {
@@ -52,7 +53,6 @@ public class Instructions {
                     }
                     offset += width;
                 }
-                sb.append(String.format("%04d %s", i, def.getName()));
                 for (int operand : operands) {
                     sb.append(" ").append(operand);
                 }

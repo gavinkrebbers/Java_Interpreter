@@ -58,7 +58,7 @@ public class REPL {
                     System.out.println("execution error" + e);
                     return;
                 }
-                EvalObject lastPopped = machine.stackTop();
+                EvalObject lastPopped = machine.lastPoppedElement();
                 System.out.println(lastPopped.inspect());
                 System.out.println("\n");
             } catch (IOException e) {
