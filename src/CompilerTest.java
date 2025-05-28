@@ -4,6 +4,7 @@ import Compiler.Compiler;
 import Compiler.CompilerError;
 import EvalObject.EvalObject;
 import EvalObject.IntegerObj;
+import EvalObject.StringObj;
 import Lexer.Lexer;
 import Parser.Parser;
 import ast.Program;
@@ -101,6 +102,8 @@ public class CompilerTest {
             Object constant = expected.get(i);
             if (constant != null && constant instanceof Integer) {
                 testIntegerObject(((Integer) constant).longValue(), actual.get(i));
+            } else if (constant != null && constant instanceof String) {
+                testStringObject((String) constant.toString(), actual.get(i));
             } else if (constant != null) {
                 throw new Exception("unhandled constant type: " + constant.getClass());
             } else {
@@ -116,6 +119,24 @@ public class CompilerTest {
         IntegerObj result = (IntegerObj) actual;
         if (result.getValue() != expected) {
             throw new Exception(String.format("object has wrong value. got=%d, want=%d", result.getValue(), expected));
+        }
+    }
+
+    private void testStringObject(String expected, EvalObject actual) throws Exception {
+        if (!(actual instanceof StringObj)) {
+            throw new Exception(String.format(
+                    "object is not StringObj. got=%s (%s)",
+                    actual == null ? "null" : actual.getClass(),
+                    actual
+            ));
+        }
+        StringObj result = (StringObj) actual;
+        if (!result.value.equals(expected)) {
+            throw new Exception(String.format(
+                    "object has wrong value. got=%s, want=%s",
+                    result.value,
+                    expected
+            ));
         }
     }
 
@@ -329,6 +350,194 @@ public class CompilerTest {
                                 // 0014
                                 Code.Make(Code.OpConstant, 2),
                                 // 0017
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testGlobalLetStatements() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "let one = 1; let two = 2;",
+                        Arrays.asList(1, 2),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpSetGlobal, 1)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let one = 1; one;",
+                        Arrays.asList(1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let one = 1; let two = one; two;",
+                        Arrays.asList(1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpSetGlobal, 1),
+                                Code.Make(Code.OpGetGlobal, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testStringExpressions() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "\"monkey\"",
+                        Arrays.asList("monkey"),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "\"mon\" + \"key\"",
+                        Arrays.asList("mon", "key"),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpAdd),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testArrayLiterals() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "[]",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpArray, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "[1, 2, 3]",
+                        Arrays.asList(1, 2, 3),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpArray, 3),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "[1 + 2, 3 - 4, 5 * 6]",
+                        Arrays.asList(1, 2, 3, 4, 5, 6),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpAdd),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpSub),
+                                Code.Make(Code.OpConstant, 4),
+                                Code.Make(Code.OpConstant, 5),
+                                Code.Make(Code.OpMul),
+                                Code.Make(Code.OpArray, 3),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testHashLiterals() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "{}",
+                        Arrays.asList(),
+                        Arrays.asList(
+                                Code.Make(Code.OpHash, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "{1: 2, 3: 4, 5: 6}",
+                        Arrays.asList(1, 2, 3, 4, 5, 6),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpConstant, 4),
+                                Code.Make(Code.OpConstant, 5),
+                                Code.Make(Code.OpHash, 6),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "{1: 2 + 3, 4: 5 * 6}",
+                        Arrays.asList(1, 2, 3, 4, 5, 6),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpAdd),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpConstant, 4),
+                                Code.Make(Code.OpConstant, 5),
+                                Code.Make(Code.OpMul),
+                                Code.Make(Code.OpHash, 4),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testIndexExpressions() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "[1, 2, 3][1 + 1]",
+                        Arrays.asList(1, 2, 3, 1, 1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpArray, 3),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpConstant, 4),
+                                Code.Make(Code.OpAdd),
+                                Code.Make(Code.OpIndex),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "{1: 2}[2 - 1]",
+                        Arrays.asList(1, 2, 2, 1),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpHash, 2),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpSub),
+                                Code.Make(Code.OpIndex),
                                 Code.Make(Code.OpPop)
                         )
                 )

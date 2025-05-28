@@ -1,32 +1,58 @@
 package vm;
 
 import Compiler.Bytecode;
+import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
 import EvalObject.EvalObject;
+import EvalObject.HashKey;
+import EvalObject.HashObj;
+import EvalObject.Hashable;
 import EvalObject.IntegerObj;
 import EvalObject.NullObj;
+import EvalObject.Pair;
+import EvalObject.StringObj;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class VM {
 
     public final int STACK_SIZE = 2048;
+    public static final int GLOBALS_SIZE = 65536;
 
     public static final BooleanObj TRUE = new BooleanObj(true);
     public static final BooleanObj FALSE = new BooleanObj(false);
     public static final NullObj NULL_OBJ = new NullObj();
+
     public List<EvalObject> constants;
     public Instructions instructions;
 
     public EvalObject[] stack = new EvalObject[STACK_SIZE];
+    public List<EvalObject> globals = new ArrayList<>();
 
     public int sp = 0;
 
     public VM(Bytecode bytecode) {
         this.constants = bytecode.constants;
         this.instructions = bytecode.instructions;
+        // for (int i = 0; i < GLOBALS_SIZE; i++) {
+        //     globals.add(NULL_OBJ); // or any placeholder EvalObject
+        // }
+    }
+
+    public VM(Bytecode bytecode, List<EvalObject> globals) {
+        this.constants = bytecode.constants;
+        this.instructions = bytecode.instructions;
+        this.globals = globals;
+
+        for (int i = 0; i < GLOBALS_SIZE; i++) {
+            globals.add(NULL_OBJ); // or any placeholder EvalObject
+        }
 
     }
 
@@ -44,6 +70,12 @@ public class VM {
                     break;
                 case Code.OpAddValue, Code.OpSubValue, Code.OpMulValue, Code.OpDivValue:
                     executeBinaryOperation(opValue);
+                    break;
+                case Code.OpArrayValue:
+                    ip = executeArray(ip);
+                    break;
+                case Code.OpHashValue:
+                    ip = executeHash(ip);
                     break;
                 case Code.OpPopValue:
                     pop();
@@ -80,6 +112,20 @@ public class VM {
                 case Code.OpNullValue:
                     push(NULL_OBJ);
                     break;
+                case Code.OpGetGlobalValue:
+                    int globalsIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+                    ip += 2;
+                    push(globals.get(globalsIndex));
+                    break;
+                case Code.OpSetGlobalValue:
+                    int globalIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+                    ip += 2;
+                    EvalObject evalObject = pop();
+                    setAtIndex(globals, globalIndex, evalObject);
+                    break;
+                case Code.OpIndexValue:
+                    executeIndexExpression();
+                    break;
                 default:
                     throw new ExecutionError("unrecognized opcode" + op.getValue());
             }
@@ -110,6 +156,8 @@ public class VM {
         EvalObject left = pop();
         if (left instanceof IntegerObj leftInt && right instanceof IntegerObj rightInt) {
             executeBinaryIntegerOperation(opValue, leftInt, rightInt);
+        } else if (left instanceof StringObj leftString && right instanceof StringObj rightString) {
+            executeBinaryStringOperation(opValue, leftString, rightString);
         } else {
             throw new ExecutionError(String.format("unsupported types for binary operation: %s %s", left, right));
 
@@ -137,6 +185,13 @@ public class VM {
                 throw new ExecutionError("unknown integer operator");
         }
         push(new IntegerObj(result));
+    }
+
+    public void executeBinaryStringOperation(byte opValue, StringObj left, StringObj right) throws ExecutionError {
+        if (opValue != Code.OpAddValue) {
+            throw new ExecutionError("unknown string operator");
+        }
+        push(new StringObj(left.value + right.value));
     }
 
     public void executeComparisonOperator(byte op) throws ExecutionError {
@@ -175,6 +230,71 @@ public class VM {
                 break;
             default:
                 throw new AssertionError();
+        }
+    }
+
+    public int executeArray(int ip) throws ExecutionError {
+
+        byte[] ins = this.instructions.instructions;
+        int arrSize = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+        ip += 2;
+        int startIndex = this.sp - arrSize;
+        if (startIndex < 0) {
+            throw new ExecutionError("stack underflow while creating arr");
+
+        }
+        List<EvalObject> elements = new LinkedList<>();
+        for (int index = 0; index < arrSize; index++) {
+            elements.add(stack[startIndex + index]);
+        }
+        sp = startIndex;
+        ArrayObj arr = new ArrayObj(elements);
+        push(arr);
+        return ip;
+    }
+
+    public int executeHash(int ip) throws ExecutionError {
+        byte[] ins = this.instructions.instructions;
+        int pairCount = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+        ip += 2;
+        int startingIndex = sp - pairCount;
+        int endingIndex = sp;
+        Map<HashKey, Pair> hashMap = new HashMap<>();
+        for (int i = startingIndex; i < endingIndex; i += 2) {
+            EvalObject key = stack[i];
+            EvalObject value = stack[i + 1];
+            if (!(key instanceof Hashable)) {
+                throw new ExecutionError("not valid key type");
+            }
+            HashKey hashKey = ((Hashable) key).generateHashKey();
+            hashMap.put(hashKey, new Pair(key, value));
+        }
+
+        sp = startingIndex;
+        push(new HashObj(hashMap));
+        return ip;
+    }
+
+    public void executeIndexExpression() throws ExecutionError {
+        EvalObject index = pop();
+        EvalObject left = pop();
+        if (left instanceof ArrayObj arrayObj && index instanceof IntegerObj integerObj) {
+            if (integerObj.value >= arrayObj.elements.size() || integerObj.value < 0) {
+                push(NULL_OBJ);
+                return;
+            }
+            push(arrayObj.elements.get(integerObj.value));
+        } else if (left instanceof HashObj hashObj) {
+            if (!(index instanceof Hashable)) {
+                throw new ExecutionError("not valid index operator for hash: " + index.type());
+            }
+
+            HashKey hashKey = ((Hashable) index).generateHashKey();
+            Pair pair = hashObj.map.get(hashKey);
+            push(pair != null ? pair.value : NULL_OBJ);
+
+        } else {
+            throw new ExecutionError("invalid index expression");
         }
     }
 
@@ -225,6 +345,13 @@ public class VM {
         }
         return true;
 
+    }
+
+    public static void setAtIndex(List<EvalObject> globals, int index, EvalObject value) {
+        while (globals.size() <= index) {
+            globals.add(NULL_OBJ);
+        }
+        globals.set(index, value);
     }
 
 }

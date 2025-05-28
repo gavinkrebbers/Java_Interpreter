@@ -21,6 +21,11 @@ public class Code {
     public static final byte OpJumpNotTruthyValue = 14;
     public static final byte OpJumpValue = 15;
     public static final byte OpNullValue = 16;
+    public static final byte OpSetGlobalValue = 17;
+    public static final byte OpGetGlobalValue = 18;
+    public static final byte OpArrayValue = 19;
+    public static final byte OpHashValue = 20;
+    public static final byte OpIndexValue = 21;
 
     public static final Opcode OpConstant = new Opcode(OpConstantValue);
     public static final Opcode OpPop = new Opcode(OpPopValue);
@@ -38,6 +43,11 @@ public class Code {
     public static final Opcode OpJumpNotTruthy = new Opcode(OpJumpNotTruthyValue);
     public static final Opcode OpJump = new Opcode(OpJumpValue);
     public static final Opcode OpNull = new Opcode(OpNullValue);
+    public static final Opcode OpSetGlobal = new Opcode(OpSetGlobalValue);
+    public static final Opcode OpGetGlobal = new Opcode(OpGetGlobalValue);
+    public static final Opcode OpArray = new Opcode(OpArrayValue);
+    public static final Opcode OpHash = new Opcode(OpHashValue);
+    public static final Opcode OpIndex = new Opcode(OpIndexValue);
 
     private static final Map<Opcode, Definition> definitions = new HashMap<>();
 
@@ -58,6 +68,11 @@ public class Code {
         addDefinition(OpJumpNotTruthy, "OpJumpNotTruthy", 2);
         addDefinition(OpJump, "OpJump", 2);
         addDefinition(OpNull, "OpNull");
+        addDefinition(OpSetGlobal, "OpSetGlobal", 2);
+        addDefinition(OpGetGlobal, "OpGetGlobal", 2);
+        addDefinition(OpArray, "OpArray", 2);
+        addDefinition(OpHash, "OpHash", 2);
+        addDefinition(OpIndex, "OpIndex");
     }
 
     private static void addDefinition(Opcode opcode, String name, int... operandWidths) {

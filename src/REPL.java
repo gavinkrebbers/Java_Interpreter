@@ -8,9 +8,12 @@ import Evaluator.Evaluator;
 import Lexer.Lexer;
 import Parser.Parser;
 import ast.Program;
+import code.SymbolTable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import vm.ExecutionError;
 import vm.VM;
 
@@ -22,7 +25,9 @@ public class REPL {
 
     public void start() {
         Environment env = new Environment();
-
+        List<EvalObject> globals = new ArrayList<>(VM.GLOBALS_SIZE);
+        List<EvalObject> constants = new ArrayList<>();
+        SymbolTable symbolTable = new SymbolTable();
         String PROMPT = ">>";
         while (true) {
             try {
@@ -42,7 +47,8 @@ public class REPL {
                 }
 
                 // Interpret(program, env);
-                Compiler comp = new Compiler();
+                Compiler comp = new Compiler(symbolTable, constants);
+
                 try {
                     comp.compile(program);
 
@@ -50,8 +56,8 @@ public class REPL {
                     System.out.println("execution error" + e);
                     return;
                 }
+                VM machine = new VM(comp.bytecode(), globals);
 
-                VM machine = new VM(comp.bytecode());
                 try {
                     machine.run();
                 } catch (ExecutionError e) {

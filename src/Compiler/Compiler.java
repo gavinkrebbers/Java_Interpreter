@@ -3,18 +3,28 @@ package Compiler;
 import EvalObject.BooleanObj;
 import EvalObject.EvalObject;
 import EvalObject.IntegerObj;
+import EvalObject.StringObj;
+import ast.ArrayLiteral;
 import ast.BlockStatement;
+import ast.Expression;
 import ast.ExpressionStatement;
+import ast.HashLiteral;
+import ast.Identifier;
 import ast.IfExpression;
+import ast.IndexExpression;
 import ast.InfixExpression;
 import ast.IntegerLiteral;
+import ast.LetStatement;
 import ast.PrefixExpression;
 import ast.Program;
 import ast.ProgramNode;
 import ast.Statement;
+import ast.StringLiteral;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
+import code.Symbol;
+import code.SymbolTable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +34,7 @@ public class Compiler {
     public List<EvalObject> constants;
     public EmittedInstruction lastInstruction;
     public EmittedInstruction prevInstruction;
+    public SymbolTable symbolTable;
 
     public static final BooleanObj TRUE = new BooleanObj(true);
     public static final BooleanObj FALSE = new BooleanObj(false);
@@ -31,6 +42,13 @@ public class Compiler {
     public Compiler() {
         this.instructions = new Instructions(new byte[0]);
         this.constants = new ArrayList<>();
+        this.symbolTable = new SymbolTable();
+    }
+
+    public Compiler(SymbolTable s, List<EvalObject> constants) {
+        this.instructions = new Instructions(new byte[0]);
+        this.constants = constants;
+        this.symbolTable = s;
     }
 
     public Bytecode bytecode() {
@@ -88,6 +106,26 @@ public class Compiler {
             emit(Code.OpConstant, addConstant(new IntegerObj(integerLiteral.value)));
         } else if (node instanceof ast.Boolean bool) {
             emit(bool.value ? Code.OpTrue : Code.OpFalse);
+        } else if (node instanceof StringLiteral stringLiteral) {
+            emit(Code.OpConstant, addConstant(new StringObj(stringLiteral.value)));
+        } else if (node instanceof ArrayLiteral arrayLiteral) {
+            int arrSize = arrayLiteral.elements.size();
+            for (int i = 0; i < arrSize; i++) {
+                compile(arrayLiteral.elements.get(i));
+            }
+            emit(Code.OpArray, arrSize);
+        } else if (node instanceof HashLiteral hashLiteral) {
+            List<Expression> keys = new ArrayList<>();
+            hashLiteral.pairs.keySet().forEach((key) -> {
+                keys.add(key);
+            });
+            keys.sort((o1, o2) -> o1.toString().compareTo(o2.toString()));
+            for (Expression key : keys) {
+                compile(key);
+                compile(hashLiteral.pairs.get(key));
+            }
+            emit(Code.OpHash, keys.size() * 2);
+
         } else if (node instanceof IfExpression ifExpression) {
 
             compile(ifExpression.condition);
@@ -127,6 +165,20 @@ public class Compiler {
                 default:
                     throw new CompilerError("unrecognized prefix expression " + prefixExpression.operator);
             }
+        } else if (node instanceof LetStatement letStatement) {
+            compile(letStatement.value);
+            Symbol symbol = symbolTable.define(letStatement.identifier.value);
+            emit(Code.OpSetGlobal, symbol.index);
+        } else if (node instanceof Identifier identifier) {
+            Symbol symbol = symbolTable.resolve(identifier.value);
+            if (symbol == null) {
+                throw new CompilerError("Unrecognized identifier: " + identifier.value);
+            }
+            emit(Code.OpGetGlobal, symbol.index);
+        } else if (node instanceof IndexExpression indexExpression) {
+            compile(indexExpression.left);
+            compile(indexExpression.index);
+            emit(Code.OpIndex);
         } else {
             throw new CompilerError("Unrecognized operation");
         }
