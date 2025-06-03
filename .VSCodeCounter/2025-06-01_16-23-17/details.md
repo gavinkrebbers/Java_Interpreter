@@ -1,22 +1,23 @@
 # Details
 
-Date : 2025-05-22 21:50:35
+Date : 2025-06-01 16:23:17
 
 Directory c:\\Computer Science Stuff\\Compiler\\Monkey_java
 
-Total : 59 files,  3573 codes, 31 comments, 958 blanks, all 4562 lines
+Total : 64 files,  4819 codes, 68 comments, 1092 blanks, all 5979 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Files
 | filename | language | code | comment | blank | total |
 | :--- | :--- | ---: | ---: | ---: | ---: |
-| [README.md](/README.md) | Markdown | 22 | 0 | 8 | 30 |
-| [src/CodeTest.java](/src/CodeTest.java) | Java | 17 | 0 | 9 | 26 |
-| [src/CompilerTest.java](/src/CompilerTest.java) | Java | 147 | 0 | 15 | 162 |
+| [README.md](/README.md) | Markdown | 16 | 0 | 8 | 24 |
+| [src/CodeTest.java](/src/CodeTest.java) | Java | 71 | 1 | 12 | 84 |
+| [src/CompilerTest.java](/src/CompilerTest.java) | Java | 508 | 16 | 25 | 549 |
 | [src/Compiler/Bytecode.java](/src/Compiler/Bytecode.java) | Java | 26 | 0 | 11 | 37 |
-| [src/Compiler/Compiler.java](/src/Compiler/Compiler.java) | Java | 55 | 1 | 16 | 72 |
+| [src/Compiler/Compiler.java](/src/Compiler/Compiler.java) | Java | 209 | 1 | 29 | 239 |
 | [src/Compiler/CompilerError.java](/src/Compiler/CompilerError.java) | Java | 6 | 0 | 3 | 9 |
+| [src/Compiler/EmittedInstruction.java](/src/Compiler/EmittedInstruction.java) | Java | 12 | 0 | 6 | 18 |
 | [src/EvalObject/ArrayObj.java](/src/EvalObject/ArrayObj.java) | Java | 35 | 0 | 14 | 49 |
 | [src/EvalObject/BooleanObj.java](/src/EvalObject/BooleanObj.java) | Java | 25 | 0 | 11 | 36 |
 | [src/EvalObject/Builtin.java](/src/EvalObject/Builtin.java) | Java | 20 | 0 | 10 | 30 |
@@ -38,13 +39,14 @@ Total : 59 files,  3573 codes, 31 comments, 958 blanks, all 4562 lines
 | [src/Evaluator/Evaluator.java](/src/Evaluator/Evaluator.java) | Java | 338 | 2 | 52 | 392 |
 | [src/LexerTest.java](/src/LexerTest.java) | Java | 78 | 0 | 11 | 89 |
 | [src/Lexer/Lexer.java](/src/Lexer/Lexer.java) | Java | 154 | 0 | 23 | 177 |
-| [src/Main.java](/src/Main.java) | Java | 5 | 0 | 5 | 10 |
+| [src/Main.java](/src/Main.java) | Java | 6 | 0 | 5 | 11 |
 | [src/ParserTest.java](/src/ParserTest.java) | Java | 600 | 13 | 197 | 810 |
 | [src/Parser/Parser.java](/src/Parser/Parser.java) | Java | 367 | 0 | 75 | 442 |
-| [src/REPL.java](/src/REPL.java) | Java | 47 | 1 | 10 | 58 |
+| [src/REPL.java](/src/REPL.java) | Java | 58 | 17 | 13 | 88 |
+| [src/SymbolTableTest.java](/src/SymbolTableTest.java) | Java | 35 | 0 | 10 | 45 |
 | [src/Token/Token.java](/src/Token/Token.java) | Java | 22 | 0 | 8 | 30 |
 | [src/Token/TokenType.java](/src/Token/TokenType.java) | Java | 54 | 4 | 16 | 74 |
-| [src/VMTest.java](/src/VMTest.java) | Java | 69 | 0 | 11 | 80 |
+| [src/VMTest.java](/src/VMTest.java) | Java | 272 | 1 | 38 | 311 |
 | [src/ast/ArrayLiteral.java](/src/ast/ArrayLiteral.java) | Java | 36 | 0 | 15 | 51 |
 | [src/ast/BlockStatement.java](/src/ast/BlockStatement.java) | Java | 30 | 0 | 10 | 40 |
 | [src/ast/Boolean.java](/src/ast/Boolean.java) | Java | 21 | 0 | 10 | 31 |
@@ -65,10 +67,13 @@ Total : 59 files,  3573 codes, 31 comments, 958 blanks, all 4562 lines
 | [src/ast/ReturnStatement.java](/src/ast/ReturnStatement.java) | Java | 26 | 0 | 14 | 40 |
 | [src/ast/Statement.java](/src/ast/Statement.java) | Java | 4 | 0 | 3 | 7 |
 | [src/ast/StringLiteral.java](/src/ast/StringLiteral.java) | Java | 27 | 0 | 11 | 38 |
-| [src/code/Code.java](/src/code/Code.java) | Java | 45 | 0 | 14 | 59 |
+| [src/code/Code.java](/src/code/Code.java) | Java | 107 | 0 | 15 | 122 |
 | [src/code/Definition.java](/src/code/Definition.java) | Java | 15 | 0 | 6 | 21 |
-| [src/code/Instructions.java](/src/code/Instructions.java) | Java | 59 | 0 | 9 | 68 |
+| [src/code/Instructions.java](/src/code/Instructions.java) | Java | 63 | 0 | 10 | 73 |
 | [src/code/Opcode.java](/src/code/Opcode.java) | Java | 25 | 0 | 7 | 32 |
-| [src/vm/VM.java](/src/vm/VM.java) | Java | 3 | 0 | 3 | 6 |
+| [src/code/Symbol.java](/src/code/Symbol.java) | Java | 24 | 0 | 5 | 29 |
+| [src/code/SymbolTable.java](/src/code/SymbolTable.java) | Java | 20 | 0 | 8 | 28 |
+| [src/vm/ExecutionError.java](/src/vm/ExecutionError.java) | Java | 6 | 0 | 3 | 9 |
+| [src/vm/VM.java](/src/vm/VM.java) | Java | 308 | 3 | 47 | 358 |
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)

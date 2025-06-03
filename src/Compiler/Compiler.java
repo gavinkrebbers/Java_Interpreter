@@ -1,13 +1,16 @@
 package Compiler;
 
 import EvalObject.BooleanObj;
+import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
 import EvalObject.IntegerObj;
 import EvalObject.StringObj;
 import ast.ArrayLiteral;
 import ast.BlockStatement;
+import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
+import ast.FunctionLiteral;
 import ast.HashLiteral;
 import ast.Identifier;
 import ast.IfExpression;
@@ -18,6 +21,7 @@ import ast.LetStatement;
 import ast.PrefixExpression;
 import ast.Program;
 import ast.ProgramNode;
+import ast.ReturnStatement;
 import ast.Statement;
 import ast.StringLiteral;
 import code.Code;
@@ -30,29 +34,37 @@ import java.util.List;
 
 public class Compiler {
 
-    public Instructions instructions;
+    // public Instructions instructions;
     public List<EvalObject> constants;
-    public EmittedInstruction lastInstruction;
-    public EmittedInstruction prevInstruction;
     public SymbolTable symbolTable;
+
+    public List<CompilationScope> scopes;
+    public int scopeIndex;
 
     public static final BooleanObj TRUE = new BooleanObj(true);
     public static final BooleanObj FALSE = new BooleanObj(false);
 
     public Compiler() {
-        this.instructions = new Instructions(new byte[0]);
+        // this.instructions = new Instructions(new byte[0]);
         this.constants = new ArrayList<>();
         this.symbolTable = new SymbolTable();
+        this.scopes = new ArrayList<>();
+        this.scopes.add(new CompilationScope());
+        this.scopeIndex = 0;
     }
 
     public Compiler(SymbolTable s, List<EvalObject> constants) {
-        this.instructions = new Instructions(new byte[0]);
+        // this.instructions = new Instructions(new byte[0]);
         this.constants = constants;
         this.symbolTable = s;
+        this.scopes = new ArrayList<>();
+        this.scopes.add(new CompilationScope());
+
+        this.scopeIndex = 0;
     }
 
     public Bytecode bytecode() {
-        return new Bytecode(this.instructions, this.constants);
+        return new Bytecode(currentInstructions(), this.constants);
     }
 
     public void compile(ProgramNode node) throws CompilerError {
@@ -62,6 +74,7 @@ public class Compiler {
             for (ProgramNode curNode : program.statements) {
                 compile(curNode);
             }
+
         } else if (node instanceof ExpressionStatement expr) {
             compile(expr.expression);
             emit(Code.OpPop);
@@ -132,11 +145,11 @@ public class Compiler {
             int jumpNotTruthyPos = emit(Code.OpJumpNotTruthy, 9999);
             compile(ifExpression.consequence);
 
-            if (lastInstructionIsPop()) {
+            if (lastInstructionIs(Code.OpPop)) {
                 removeLastPop();
             }
             int jumpPos = emit(Code.OpJump, 9999);
-            changeOperand(jumpNotTruthyPos, instructions.instructions.length);
+            changeOperand(jumpNotTruthyPos, currentInstructions().instructions.length);
 
             if (ifExpression.alternative != null) {
                 compile(ifExpression.alternative);
@@ -144,10 +157,10 @@ public class Compiler {
                 emit(Code.OpNull);
             }
 
-            if (lastInstructionIsPop()) {
+            if (lastInstructionIs(Code.OpPop)) {
                 removeLastPop();
             }
-            changeOperand(jumpPos, instructions.instructions.length);
+            changeOperand(jumpPos, currentInstructions().instructions.length);
         } else if (node instanceof BlockStatement blockStatement) {
             for (Statement stmt : blockStatement.statements) {
                 compile(stmt);
@@ -166,9 +179,11 @@ public class Compiler {
                     throw new CompilerError("unrecognized prefix expression " + prefixExpression.operator);
             }
         } else if (node instanceof LetStatement letStatement) {
+
             compile(letStatement.value);
             Symbol symbol = symbolTable.define(letStatement.identifier.value);
             emit(Code.OpSetGlobal, symbol.index);
+
         } else if (node instanceof Identifier identifier) {
             Symbol symbol = symbolTable.resolve(identifier.value);
             if (symbol == null) {
@@ -179,6 +194,26 @@ public class Compiler {
             compile(indexExpression.left);
             compile(indexExpression.index);
             emit(Code.OpIndex);
+
+        } else if (node instanceof FunctionLiteral functionLiteral) {
+            pushScope();
+            compile(functionLiteral.body);
+            if (lastInstructionIs(Code.OpPop)) {
+                removeLastPop();
+                emit(Code.OpReturnObject);
+            }
+            if (!lastInstructionIs(Code.OpReturnObject)) {
+                emit(Code.OpReturn);
+            }
+            Instructions ins = popScope();
+            CompiledFunction compiledFunction = new CompiledFunction(ins);
+            emit(Code.OpConstant, addConstant(compiledFunction));
+        } else if (node instanceof CallExpression callExpression) {
+            compile(callExpression.function);
+            emit(Code.OpCall);
+        } else if (node instanceof ReturnStatement returnStatement) {
+            compile(returnStatement.returnValue);
+            emit(Code.OpReturnObject);
         } else {
             throw new CompilerError("Unrecognized operation");
         }
@@ -198,41 +233,69 @@ public class Compiler {
         return position;
     }
 
+    public Instructions currentInstructions() {
+        return scopes.get(scopeIndex).instructions;
+    }
+
     public int addInstruction(byte[] ins) {
-        int posNewInstruction = instructions.instructions.length;
-        instructions.addInstruction(ins);
+        byte[] prevInstructions = currentInstructions().instructions;
+
+        int posNewInstruction = prevInstructions.length;
+
+        byte[] combined = new byte[prevInstructions.length + ins.length];
+        System.arraycopy(prevInstructions, 0, combined, 0, prevInstructions.length);
+        System.arraycopy(ins, 0, combined, prevInstructions.length, ins.length);
+        Instructions newInstructions = new Instructions(combined);
+        scopes.get(scopeIndex).instructions = newInstructions;
         return posNewInstruction;
     }
 
     public void setLastInstruction(Opcode op, int pos) {
-        EmittedInstruction previous = this.lastInstruction;
+        EmittedInstruction previous = scopes.get(scopeIndex).lastInstruction;
         EmittedInstruction last = new EmittedInstruction(op, pos);
-        this.prevInstruction = previous;
-        this.lastInstruction = last;
+        scopes.get(scopeIndex).prevInstruction = previous;
+        scopes.get(scopeIndex).lastInstruction = last;
     }
 
-    public boolean lastInstructionIsPop() {
-        return lastInstruction.opcode.value == Code.OpPopValue;
+    public boolean lastInstructionIs(Opcode op) {
+        if (currentInstructions().instructions.length == 0) {
+            return false;
+        }
+        return scopes.get(scopeIndex).lastInstruction.opcode.value == op.value;
     }
 
     public void removeLastPop() {
-        int newLength = lastInstruction.position;
-        byte[] truncated = new byte[newLength];
-        System.arraycopy(instructions.instructions, 0, truncated, 0, newLength);
-        instructions.instructions = truncated;
-        this.lastInstruction = this.prevInstruction;
+        int newLength = scopes.get(scopeIndex).lastInstruction.position;
+        byte[] truncatedInstruction = new byte[newLength];
+        System.arraycopy(currentInstructions().instructions, 0, truncatedInstruction, 0, newLength);
+        scopes.get(scopeIndex).instructions = new Instructions(truncatedInstruction);
+
     }
 
     public void replaceInstruction(int pos, byte[] newInstruction) {
         for (int i = 0; i < newInstruction.length; i++) {
-            instructions.instructions[pos + i] = newInstruction[i];
+            currentInstructions().instructions[pos + i] = newInstruction[i];
         }
     }
 
     public void changeOperand(int opPos, int operand) {
-        Opcode newOp = new Opcode(instructions.instructions[opPos]);
+        Opcode newOp = new Opcode(currentInstructions().instructions[opPos]);
         byte[] newInstruction = Code.Make(newOp, operand);
         replaceInstruction(opPos, newInstruction);
     }
 
+    public void pushScope() {
+        CompilationScope newScope = new CompilationScope(new Instructions(), new EmittedInstruction(), new EmittedInstruction());
+        scopes.add(newScope);
+        scopeIndex++;
+
+    }
+
+    public Instructions popScope() {
+        Instructions ins = currentInstructions();
+        scopes.remove(scopes.size() - 1);
+        scopeIndex--;
+        return ins;
+
+    }
 }

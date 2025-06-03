@@ -1,0 +1,41 @@
+Date : 2025-06-01 16:23:17
+Directory : c:\Computer Science Stuff\Compiler\Monkey_java
+Total : 12 files,  850 codes, 36 comments, 85 blanks, all 971 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Java     |         12 |        850 |         36 |         85 |        971 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |         12 |        850 |         36 |         85 |        971 |
+| src                                                                                 |         12 |        850 |         36 |         85 |        971 |
+| src (Files)                                                                         |          5 |        445 |         33 |         39 |        517 |
+| src\Compiler                                                                        |          2 |        129 |          0 |         18 |        147 |
+| src\code                                                                            |          4 |         78 |          0 |          6 |         84 |
+| src\vm                                                                              |          1 |        198 |          3 |         22 |        223 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                            | language | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\CodeTest.java                    | Java     |          1 |          0 |          0 |          1 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\CompilerTest.java                | Java     |        255 |         16 |          8 |        279 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Compiler.java           | Java     |        117 |          0 |         12 |        129 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\EmittedInstruction.java | Java     |         12 |          0 |          6 |         18 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\REPL.java                        | Java     |        -10 |         16 |          0 |          6 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\SymbolTableTest.java             | Java     |         35 |          0 |         10 |         45 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\VMTest.java                      | Java     |        164 |          1 |         21 |        186 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Code.java                   | Java     |         31 |          0 |         -8 |         23 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Instructions.java           | Java     |          3 |          0 |          1 |          4 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Symbol.java                 | Java     |         24 |          0 |          5 |         29 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\SymbolTable.java            | Java     |         20 |          0 |          8 |         28 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\VM.java                       | Java     |        198 |          3 |         22 |        223 |
+| Total                                                                               |          |        850 |         36 |         85 |        971 |
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

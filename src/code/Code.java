@@ -26,6 +26,9 @@ public class Code {
     public static final byte OpArrayValue = 19;
     public static final byte OpHashValue = 20;
     public static final byte OpIndexValue = 21;
+    public static final byte OpCallValue = 22;
+    public static final byte OpReturnObjectValue = 23;
+    public static final byte OpReturnValue = 24;
 
     public static final Opcode OpConstant = new Opcode(OpConstantValue);
     public static final Opcode OpPop = new Opcode(OpPopValue);
@@ -48,6 +51,9 @@ public class Code {
     public static final Opcode OpArray = new Opcode(OpArrayValue);
     public static final Opcode OpHash = new Opcode(OpHashValue);
     public static final Opcode OpIndex = new Opcode(OpIndexValue);
+    public static final Opcode OpCall = new Opcode(OpCallValue);
+    public static final Opcode OpReturnObject = new Opcode(OpReturnObjectValue);
+    public static final Opcode OpReturn = new Opcode(OpReturnValue);
 
     private static final Map<Opcode, Definition> definitions = new HashMap<>();
 
@@ -73,6 +79,10 @@ public class Code {
         addDefinition(OpArray, "OpArray", 2);
         addDefinition(OpHash, "OpHash", 2);
         addDefinition(OpIndex, "OpIndex");
+        addDefinition(OpCall, "OpCall");
+        addDefinition(OpReturnObject, "OpReturnObject");
+        addDefinition(OpReturn, "OpReturn");
+
     }
 
     private static void addDefinition(Opcode opcode, String name, int... operandWidths) {

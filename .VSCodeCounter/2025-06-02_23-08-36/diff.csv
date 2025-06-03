@@ -1,0 +1,12 @@
+"filename", "language", "Java", "comment", "blank", "total"
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\CompilerTest.java", "Java", 147, 8, 13, 168
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\CompilationScope.java", "Java", 17, 0, 6, 23
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Compiler.java", "Java", 47, 3, 13, 63
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\CompiledFunction.java", "Java", 19, 0, 9, 28
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\REPL.java", "Java", 16, -16, 0, 0
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\VMTest.java", "Java", 0, 0, 1, 1
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Code.java", "Java", 9, 0, 1, 10
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Instructions.java", "Java", 1, 0, 0, 1
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\Frame.java", "Java", 14, 0, 6, 20
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\VM.java", "Java", 19, -3, 4, 20
+"Total", "-", 289, -8, 53, 334

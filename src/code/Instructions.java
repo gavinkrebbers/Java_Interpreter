@@ -9,6 +9,7 @@ public class Instructions {
     }
 
     public Instructions() {
+        this.instructions = new byte[0];
     }
 
     public byte[] getInstructions() {

@@ -1,15 +1,18 @@
 "filename", "language", "Java", "Markdown", "comment", "blank", "total"
-"c:\Computer Science Stuff\Compiler\Monkey_java\README.md", "Markdown", 0, 22, 0, 8, 30
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\CodeTest.java", "Java", 17, 0, 0, 9, 26
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\CompilerTest.java", "Java", 147, 0, 0, 15, 162
+"c:\Computer Science Stuff\Compiler\Monkey_java\README.md", "Markdown", 0, 16, 0, 8, 24
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\CodeTest.java", "Java", 71, 0, 1, 12, 84
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\CompilerTest.java", "Java", 655, 0, 24, 38, 717
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Bytecode.java", "Java", 26, 0, 0, 11, 37
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Compiler.java", "Java", 55, 0, 1, 16, 72
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\CompilationScope.java", "Java", 17, 0, 0, 6, 23
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Compiler.java", "Java", 256, 0, 4, 42, 302
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\CompilerError.java", "Java", 6, 0, 0, 3, 9
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\EmittedInstruction.java", "Java", 12, 0, 0, 6, 18
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\ArrayObj.java", "Java", 35, 0, 0, 14, 49
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\BooleanObj.java", "Java", 25, 0, 0, 11, 36
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Builtin.java", "Java", 20, 0, 0, 10, 30
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\BuiltinFunction.java", "Java", 5, 0, 0, 3, 8
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Builtins.java", "Java", 90, 0, 3, 20, 113
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\CompiledFunction.java", "Java", 19, 0, 0, 9, 28
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Environment.java", "Java", 35, 0, 0, 14, 49
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\ErrorObj.java", "Java", 18, 0, 0, 8, 26
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\EvalObject.java", "Java", 5, 0, 0, 4, 9
@@ -26,13 +29,14 @@
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Evaluator\Evaluator.java", "Java", 338, 0, 2, 52, 392
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\LexerTest.java", "Java", 78, 0, 0, 11, 89
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Lexer\Lexer.java", "Java", 154, 0, 0, 23, 177
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\Main.java", "Java", 5, 0, 0, 5, 10
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\Main.java", "Java", 6, 0, 0, 5, 11
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ParserTest.java", "Java", 600, 0, 13, 197, 810
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Parser\Parser.java", "Java", 367, 0, 0, 75, 442
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\REPL.java", "Java", 47, 0, 1, 10, 58
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\REPL.java", "Java", 74, 0, 1, 13, 88
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\SymbolTableTest.java", "Java", 35, 0, 0, 10, 45
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Token\Token.java", "Java", 22, 0, 0, 8, 30
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\Token\TokenType.java", "Java", 54, 0, 4, 16, 74
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\VMTest.java", "Java", 69, 0, 0, 11, 80
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\VMTest.java", "Java", 272, 0, 1, 39, 312
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ArrayLiteral.java", "Java", 36, 0, 0, 15, 51
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\BlockStatement.java", "Java", 30, 0, 0, 10, 40
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Boolean.java", "Java", 21, 0, 0, 10, 31
@@ -53,9 +57,13 @@
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ReturnStatement.java", "Java", 26, 0, 0, 14, 40
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Statement.java", "Java", 4, 0, 0, 3, 7
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\StringLiteral.java", "Java", 27, 0, 0, 11, 38
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Code.java", "Java", 45, 0, 0, 14, 59
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Code.java", "Java", 116, 0, 0, 16, 132
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Definition.java", "Java", 15, 0, 0, 6, 21
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Instructions.java", "Java", 59, 0, 0, 9, 68
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Instructions.java", "Java", 64, 0, 0, 10, 74
 "c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Opcode.java", "Java", 25, 0, 0, 7, 32
-"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\VM.java", "Java", 3, 0, 0, 3, 6
-"Total", "-", 3551, 22, 31, 958, 4562
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Symbol.java", "Java", 24, 0, 0, 5, 29
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\code\SymbolTable.java", "Java", 20, 0, 0, 8, 28
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\ExecutionError.java", "Java", 6, 0, 0, 3, 9
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\Frame.java", "Java", 14, 0, 0, 6, 20
+"c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\VM.java", "Java", 327, 0, 0, 51, 378
+"Total", "-", 5092, 16, 60, 1145, 6313

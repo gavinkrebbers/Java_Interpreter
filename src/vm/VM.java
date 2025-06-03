@@ -3,6 +3,7 @@ package vm;
 import Compiler.Bytecode;
 import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
+import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
 import EvalObject.HashKey;
 import EvalObject.HashObj;
@@ -14,7 +15,9 @@ import EvalObject.StringObj;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,10 +28,6 @@ public class VM {
     public final int STACK_SIZE = 2048;
     public static final int GLOBALS_SIZE = 65536;
 
-    public static final BooleanObj TRUE = new BooleanObj(true);
-    public static final BooleanObj FALSE = new BooleanObj(false);
-    public static final NullObj NULL_OBJ = new NullObj();
-
     public List<EvalObject> constants;
     public Instructions instructions;
 
@@ -37,23 +36,32 @@ public class VM {
 
     public int sp = 0;
 
+    public Deque<Frame> frames;
+    public int framesIndex;
+
+    public static final BooleanObj TRUE = new BooleanObj(true);
+    public static final BooleanObj FALSE = new BooleanObj(false);
+    public static final NullObj NULL_OBJ = new NullObj();
+
     public VM(Bytecode bytecode) {
+        CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
         this.constants = bytecode.constants;
         this.instructions = bytecode.instructions;
-        // for (int i = 0; i < GLOBALS_SIZE; i++) {
-        //     globals.add(NULL_OBJ); // or any placeholder EvalObject
-        // }
+        this.frames = new ArrayDeque<>();
+        this.frames.add(new Frame(mainFunction));
+        this.framesIndex = 1;
     }
 
     public VM(Bytecode bytecode, List<EvalObject> globals) {
+        CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
+
         this.constants = bytecode.constants;
         this.instructions = bytecode.instructions;
         this.globals = globals;
 
-        for (int i = 0; i < GLOBALS_SIZE; i++) {
-            globals.add(NULL_OBJ); // or any placeholder EvalObject
-        }
-
+        this.frames = new ArrayDeque<>();
+        this.frames.add(new Frame(mainFunction));
+        this.framesIndex = 1;
     }
 
     public void run() throws ExecutionError {
@@ -354,4 +362,18 @@ public class VM {
         globals.set(index, value);
     }
 
+    public Frame currentFrame() {
+        return frames.peek();
+    }
+
+    public void pushFrame(Frame newFrame) {
+        frames.push(newFrame);
+        framesIndex++;
+    }
+
+    public Frame popFrame() {
+        framesIndex--;
+
+        return frames.pop();
+    }
 }
