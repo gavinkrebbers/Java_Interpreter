@@ -14,10 +14,13 @@ import ast.Program;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
+import code.SymbolTable;
+
 import org.junit.Test;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -707,6 +710,129 @@ public class CompilerTest {
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpCall),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testCompilerScopes() {
+        Compiler compiler = new Compiler();
+
+        // Test initial scope
+        assertEquals("scopeIndex wrong", 0, compiler.scopeIndex);
+
+        SymbolTable globalSymbolTable = compiler.symbolTable;
+
+        // Emit instruction in outer scope
+        compiler.emit(Code.OpMul);
+
+        // Enter new scope
+        compiler.pushScope();
+        assertEquals("scopeIndex wrong after enterScope", 1, compiler.scopeIndex);
+
+        // Emit instruction in inner scope
+        compiler.emit(Code.OpSub);
+
+        // Verify inner scope instructions
+        CompilationScope innerScope = compiler.scopes.get(compiler.scopeIndex);
+        assertEquals("instructions length wrong in inner scope",
+                1, innerScope.instructions.instructions.length);
+
+        EmittedInstruction last = innerScope.lastInstruction;
+        assertNotNull("lastInstruction is null", last);
+        assertEquals("lastInstruction.Opcode wrong",
+                Code.OpSub, last.opcode);
+
+        // Verify symbol table enclosure
+        assertNotNull("symbolTable.Outer is null", compiler.symbolTable.outer);
+        assertEquals("compiler did not enclose symbolTable",
+                globalSymbolTable, compiler.symbolTable.outer);
+
+        // Leave inner scope
+        compiler.popScope();
+        assertEquals("scopeIndex wrong after leaveScope", 0, compiler.scopeIndex);
+
+        // Verify symbol table restoration
+        assertEquals("compiler did not restore global symbol table",
+                globalSymbolTable, compiler.symbolTable);
+        assertNull("compiler modified global symbol table incorrectly",
+                compiler.symbolTable.outer);
+
+        // Emit another instruction in outer scope
+        compiler.emit(Code.OpAdd);
+
+        // Verify outer scope instructions
+        CompilationScope outerScope = compiler.scopes.get(compiler.scopeIndex);
+        assertEquals("instructions length wrong in outer scope",
+                2, outerScope.instructions.instructions.length);
+
+        last = outerScope.lastInstruction;
+        assertNotNull("lastInstruction is null", last);
+        assertEquals("lastInstruction.Opcode wrong",
+                Code.OpAdd, last.opcode);
+
+        EmittedInstruction previous = outerScope.prevInstruction;
+        assertNotNull("previousInstruction is null", previous);
+        assertEquals("previousInstruction.Opcode wrong",
+                Code.OpMul, previous.opcode);
+    }
+
+    @Test
+    public void testLetStatementScopes() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "let num = 55; fn() { num }",
+                        Arrays.asList(
+                                55,
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetGlobal, 0),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { let num = 55; num }",
+                        Arrays.asList(
+                                55,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { let a = 55; let b = 77; a + b }",
+                        Arrays.asList(
+                                55,
+                                77,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpConstant, 1),
+                                        Code.Make(Code.OpSetLocal, 1),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpGetLocal, 1),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 2),
                                 Code.Make(Code.OpPop)
                         )
                 )

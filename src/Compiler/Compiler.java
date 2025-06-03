@@ -182,14 +182,14 @@ public class Compiler {
 
             compile(letStatement.value);
             Symbol symbol = symbolTable.define(letStatement.identifier.value);
-            emit(Code.OpSetGlobal, symbol.index);
+            emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpSetGlobal : Code.OpSetLocal, symbol.index);
 
         } else if (node instanceof Identifier identifier) {
             Symbol symbol = symbolTable.resolve(identifier.value);
             if (symbol == null) {
                 throw new CompilerError("Unrecognized identifier: " + identifier.value);
             }
-            emit(Code.OpGetGlobal, symbol.index);
+            emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpGetGlobal : Code.OpGetLocal, symbol.index);
         } else if (node instanceof IndexExpression indexExpression) {
             compile(indexExpression.left);
             compile(indexExpression.index);
@@ -205,8 +205,9 @@ public class Compiler {
             if (!lastInstructionIs(Code.OpReturnObject)) {
                 emit(Code.OpReturn);
             }
+            int numLocals = symbolTable.numDefinitions;
             Instructions ins = popScope();
-            CompiledFunction compiledFunction = new CompiledFunction(ins);
+            CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals);
             emit(Code.OpConstant, addConstant(compiledFunction));
         } else if (node instanceof CallExpression callExpression) {
             compile(callExpression.function);
@@ -288,6 +289,7 @@ public class Compiler {
         CompilationScope newScope = new CompilationScope(new Instructions(), new EmittedInstruction(), new EmittedInstruction());
         scopes.add(newScope);
         scopeIndex++;
+        symbolTable = new SymbolTable(symbolTable);
 
     }
 
@@ -295,6 +297,7 @@ public class Compiler {
         Instructions ins = currentInstructions();
         scopes.remove(scopes.size() - 1);
         scopeIndex--;
+        symbolTable = symbolTable.outer;
         return ins;
 
     }

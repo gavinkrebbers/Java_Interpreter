@@ -29,6 +29,8 @@ public class Code {
     public static final byte OpCallValue = 22;
     public static final byte OpReturnObjectValue = 23;
     public static final byte OpReturnValue = 24;
+    public static final byte OpSetLocalValue = 25;
+    public static final byte OpGetLocalValue = 26;
 
     public static final Opcode OpConstant = new Opcode(OpConstantValue);
     public static final Opcode OpPop = new Opcode(OpPopValue);
@@ -54,6 +56,8 @@ public class Code {
     public static final Opcode OpCall = new Opcode(OpCallValue);
     public static final Opcode OpReturnObject = new Opcode(OpReturnObjectValue);
     public static final Opcode OpReturn = new Opcode(OpReturnValue);
+    public static final Opcode OpSetLocal = new Opcode(OpSetLocalValue);
+    public static final Opcode OpGetLocal = new Opcode(OpGetLocalValue);
 
     private static final Map<Opcode, Definition> definitions = new HashMap<>();
 
@@ -82,6 +86,8 @@ public class Code {
         addDefinition(OpCall, "OpCall");
         addDefinition(OpReturnObject, "OpReturnObject");
         addDefinition(OpReturn, "OpReturn");
+        addDefinition(OpGetLocal, "OpGetLocal", 1);
+        addDefinition(OpSetLocal, "OpSetLocal", 1);
 
     }
 
@@ -108,11 +114,16 @@ public class Code {
             int width = def.getOperandWidths()[i];
             int operand = operands[i];
 
-            if (width == 2) {
-                instruction[offset] = (byte) ((operand >> 8) & 0xFF);
-                instruction[offset + 1] = (byte) (operand & 0xFF);
-            } else {
-                throw new IllegalArgumentException("Unsupported operand width: " + width);
+            switch (width) {
+                case 2:
+                    instruction[offset] = (byte) ((operand >> 8) & 0xFF);
+                    instruction[offset + 1] = (byte) (operand & 0xFF);
+                    break;
+                case 1:
+                    instruction[offset] = (byte) operand;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported operand width: " + width);
             }
             offset += width;
         }

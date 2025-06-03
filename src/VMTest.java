@@ -308,4 +308,94 @@ public class VMTest {
         runVmTests(tests);
     }
 
+    @Test
+    public void testFunctionCalls() {
+        VmTestCase[] tests = new VmTestCase[]{
+            // Existing test case
+            new VmTestCase(
+            "let fivePlusTen = fn() { 5 + 10; }; fivePlusTen();",
+            15
+            ),
+            new VmTestCase(
+            "let one = fn() { 1; };"
+            + "let two = fn() { 2; };"
+            + "one() + two();",
+            3
+            ),
+            new VmTestCase(
+            "let a = fn() { 1 };"
+            + "let b = fn() { a() + 1 };"
+            + "let c = fn() { b() + 1 };"
+            + "c();",
+            3
+            ),};
+        runVmTests(tests);
+    }
+
+    @Test
+    public void testFunctionReturns() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase(
+            "let earlyExit = fn() { return 99; 100; }; earlyExit();",
+            99
+            ),
+            new VmTestCase(
+            "let earlyExit = fn() { return 99; return 100; }; earlyExit();",
+            99
+            ),};
+        runVmTests(tests);
+    }
+
+    @Test
+    public void testFunctionsWithoutReturnValue() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase(
+            "let noReturn = fn() { }; noReturn();",
+            new NullObj()
+            ),
+            new VmTestCase(
+            "let noReturn = fn() { }; "
+            + "let noReturnTwo = fn() { noReturn(); }; "
+            + "noReturn(); "
+            + "noReturnTwo();",
+            new NullObj()
+            )
+        };
+        runVmTests(tests);
+    }
+
+    @Test
+    public void testCallingFunctionsWithBindings() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase(
+            "let one = fn() { let one = 1; one }; one();",
+            1
+            ),
+            new VmTestCase(
+            "let oneAndTwo = fn() { let one = 1; let two = 2; one + two; }; oneAndTwo();",
+            3
+            ),
+            new VmTestCase(
+            "let oneAndTwo = fn() { let one = 1; let two = 2; one + two; };"
+            + "let threeAndFour = fn() { let three = 3; let four = 4; three + four; };"
+            + "oneAndTwo() + threeAndFour();",
+            10
+            ),
+            new VmTestCase(
+            "let firstFoobar = fn() { let foobar = 50; foobar; };"
+            + "let secondFoobar = fn() { let foobar = 100; foobar; };"
+            + "firstFoobar() + secondFoobar();",
+            150
+            ),
+            new VmTestCase(
+            "let globalSeed = 50;"
+            + "let minusOne = fn() { let num = 1; globalSeed - num; };"
+            + "let minusTwo = fn() { let num = 2; globalSeed - num; };"
+            + "minusOne() + minusTwo();",
+            97
+            )
+        };
+        runVmTests(tests);
+    }
+
 }

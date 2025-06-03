@@ -5,6 +5,7 @@ import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
 import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
+import EvalObject.FunctionObj;
 import EvalObject.HashKey;
 import EvalObject.HashObj;
 import EvalObject.Hashable;
@@ -29,7 +30,6 @@ public class VM {
     public static final int GLOBALS_SIZE = 65536;
 
     public List<EvalObject> constants;
-    public Instructions instructions;
 
     public EvalObject[] stack = new EvalObject[STACK_SIZE];
     public List<EvalObject> globals = new ArrayList<>();
@@ -46,9 +46,8 @@ public class VM {
     public VM(Bytecode bytecode) {
         CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
         this.constants = bytecode.constants;
-        this.instructions = bytecode.instructions;
         this.frames = new ArrayDeque<>();
-        this.frames.add(new Frame(mainFunction));
+        this.frames.add(new Frame(mainFunction, 0));
         this.framesIndex = 1;
     }
 
@@ -56,34 +55,39 @@ public class VM {
         CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
 
         this.constants = bytecode.constants;
-        this.instructions = bytecode.instructions;
         this.globals = globals;
 
         this.frames = new ArrayDeque<>();
-        this.frames.add(new Frame(mainFunction));
+        this.frames.add(new Frame(mainFunction, 0));
         this.framesIndex = 1;
     }
 
     public void run() throws ExecutionError {
-        byte[] ins = instructions.getInstructions();
-        String helper = instructions.toString();
-        for (int ip = 0; ip < ins.length; ip++) {
-            Opcode op = new Opcode(ins[ip]);
-            byte opValue = op.getValue();
+
+        int ip = 0;
+        Instructions ins;
+        Opcode op;
+
+        while (currentFrame().ip < currentFrame().getInstructions().instructions.length - 1) {
+            currentFrame().ip++;
+            ip = currentFrame().ip;
+            ins = currentFrame().getInstructions();
+            op = new Opcode(ins.instructions[ip]);
+            byte opValue = op.value;
             switch (opValue) {
                 case Code.OpConstantValue:
-                    int constIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-                    ip += 2;
+                    int constIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    currentFrame().ip += 2;
                     push(constants.get(constIndex));
                     break;
                 case Code.OpAddValue, Code.OpSubValue, Code.OpMulValue, Code.OpDivValue:
                     executeBinaryOperation(opValue);
                     break;
                 case Code.OpArrayValue:
-                    ip = executeArray(ip);
+                    executeArray(ip);
                     break;
                 case Code.OpHashValue:
-                    ip = executeHash(ip);
+                    executeHash(ip);
                     break;
                 case Code.OpPopValue:
                     pop();
@@ -104,35 +108,68 @@ public class VM {
                     executeMinusOperator();
                     break;
                 case Code.OpJumpNotTruthyValue:
-
-                    int landingIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-                    ip += 2;
+                    int landingIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    currentFrame().ip += 2;
                     EvalObject condition = pop();
                     if (!isTruthy(condition)) {
-                        ip = landingIndex - 1;
+                        currentFrame().ip = landingIndex - 1;
                     }
                     break;
                 case Code.OpJumpValue:
-
-                    ip = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]}) - 1;
-
+                    currentFrame().ip = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]}) - 1;
                     break;
                 case Code.OpNullValue:
                     push(NULL_OBJ);
                     break;
                 case Code.OpGetGlobalValue:
-                    int globalsIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-                    ip += 2;
+                    int globalsIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    currentFrame().ip += 2;
                     push(globals.get(globalsIndex));
                     break;
                 case Code.OpSetGlobalValue:
-                    int globalIndex = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-                    ip += 2;
+                    int globalIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    currentFrame().ip += 2;
+
                     EvalObject evalObject = pop();
                     setAtIndex(globals, globalIndex, evalObject);
                     break;
                 case Code.OpIndexValue:
                     executeIndexExpression();
+                    break;
+                case Code.OpCallValue:
+                    EvalObject top = stackTop();
+                    if (top instanceof FunctionObj) {
+                        throw new ExecutionError("calling non function");
+                    }
+                    CompiledFunction func = (CompiledFunction) top;
+                    Frame frame = new Frame(func, sp);
+                    pushFrame(frame);
+                    sp = frame.basePointer + func.numLocals;
+                    break;
+                case Code.OpReturnObjectValue:
+                    EvalObject pop = pop();
+                    frame = popFrame();
+                    sp = frame.basePointer - 1;
+                    // pop();
+                    push(pop);
+                    break;
+                case Code.OpReturnValue:
+                    frame = popFrame();
+                    sp = frame.basePointer - 1;
+
+                    push(NULL_OBJ);
+                    break;
+                case Code.OpSetLocalValue:
+                    int localIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    currentFrame().ip += 1;
+
+                    stack[currentFrame().basePointer + localIndex] = pop();
+                    break;
+                case Code.OpGetLocalValue:
+                    localIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    currentFrame().ip += 1;
+                    Frame localFrame = currentFrame();
+                    push(stack[localFrame.basePointer + localIndex]);
                     break;
                 default:
                     throw new ExecutionError("unrecognized opcode" + op.getValue());
@@ -243,9 +280,9 @@ public class VM {
 
     public int executeArray(int ip) throws ExecutionError {
 
-        byte[] ins = this.instructions.instructions;
+        byte[] ins = currentFrame().getInstructions().instructions;
         int arrSize = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-        ip += 2;
+        currentFrame().ip += 2;
         int startIndex = this.sp - arrSize;
         if (startIndex < 0) {
             throw new ExecutionError("stack underflow while creating arr");
@@ -262,9 +299,9 @@ public class VM {
     }
 
     public int executeHash(int ip) throws ExecutionError {
-        byte[] ins = this.instructions.instructions;
+        byte[] ins = currentFrame().getInstructions().instructions;
         int pairCount = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
-        ip += 2;
+        currentFrame().ip += 2;
         int startingIndex = sp - pairCount;
         int endingIndex = sp;
         Map<HashKey, Pair> hashMap = new HashMap<>();
