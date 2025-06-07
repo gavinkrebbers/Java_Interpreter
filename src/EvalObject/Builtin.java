@@ -5,9 +5,14 @@ import java.util.List;
 public class Builtin implements EvalObject {
 
     public BuiltinFunction fn;
+    public String name;
 
-    public Builtin(BuiltinFunction fn) {
+    public Builtin() {
+    }
+
+    public Builtin(String name, BuiltinFunction fn) {
         this.fn = fn;
+        this.name = name;
     }
 
     @Override

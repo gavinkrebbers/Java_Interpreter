@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class Builtins {
+public class BuiltinsEval {
 
     public static final EvalObject NULL = new NullObj();
     public static final EvalObject TRUE = new BooleanObj(true);
@@ -21,7 +21,7 @@ public class Builtins {
 
     static {
         {
-            builtins.put("len", new Builtin(args -> {
+            builtins.put("len", new BuiltinEval(args -> {
                 if (args.size() != 1) {
                     return newError("function `len` expects 1 argument. got ", args.size());
                 } else if (args.get(0) instanceof StringObj stringObj) {
@@ -34,7 +34,7 @@ public class Builtins {
                 return newError("function `len` expects STRING input. got", args.get(0).type());
 
             }));
-            builtins.put("first", new Builtin(args -> {
+            builtins.put("first", new BuiltinEval(args -> {
                 if (args.size() != 1) {
                     return newError("function `first` expects 1 argument. got ", args.size());
                 } else if (args.get(0) instanceof ArrayObj arrayObj) {
@@ -47,7 +47,7 @@ public class Builtins {
                 return newError("function `first` expects ARRAY input. got", args.get(0).type());
 
             }));
-            builtins.put("last", new Builtin(args -> {
+            builtins.put("last", new BuiltinEval(args -> {
                 if (args.size() != 1) {
                     return newError("function `last` expects 1 argument. got ", args.size());
                 } else if (args.get(0) instanceof ArrayObj arrayObj) {
@@ -60,7 +60,7 @@ public class Builtins {
                 return newError("function `last` expects ARRAY input. got", args.get(0).type());
 
             }));
-            builtins.put("rest", new Builtin(args -> {
+            builtins.put("rest", new BuiltinEval(args -> {
                 if (args.size() != 1) {
                     return newError("function `first` expects 1 argument. got ", args.size());
                 } else if (args.get(0) instanceof ArrayObj arrayObj) {
@@ -78,7 +78,7 @@ public class Builtins {
 
             }));
 
-            builtins.put("push", new Builtin(args -> {
+            builtins.put("push", new BuiltinEval(args -> {
                 if (args.size() != 2) {
                     return newError("function `first` expects 1 argument. got ", args.size());
                 } else if (!(args.get(0) instanceof ArrayObj)) {
@@ -93,7 +93,7 @@ public class Builtins {
                 ArrayObj arr = new ArrayObj(outputElements);
                 return arr;
             }));
-            builtins.put("print", new Builtin(args -> {
+            builtins.put("print", new BuiltinEval(args -> {
                 for (EvalObject obj : args) {
                     System.out.println(obj.inspect());
                 }

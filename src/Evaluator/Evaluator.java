@@ -140,7 +140,7 @@ public class Evaluator {
             return value;
 
         }
-        EvalObject builtin = Builtins.builtins.get(ident.value);
+        EvalObject builtin = BuiltinsEval.builtins.get(ident.value);
         if (builtin != null) {
             return builtin;
         }
@@ -149,10 +149,10 @@ public class Evaluator {
     }
 
     public EvalObject applyFunction(EvalObject func, List<EvalObject> args) {
-        if (!(func instanceof FunctionObj) && !(func instanceof Builtin)) {
+        if (!(func instanceof FunctionObj) && !(func instanceof BuiltinEval)) {
             return newError("not a function:", func.type());
         }
-        if (func instanceof Builtin builtin) {
+        if (func instanceof BuiltinEval builtin) {
             // Call the builtin function with the arguments
             return builtin.fn.apply(args);
         }

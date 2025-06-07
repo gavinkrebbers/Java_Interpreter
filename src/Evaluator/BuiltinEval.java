@@ -1,14 +1,13 @@
 package Evaluator;
 
+import EvalObject.EvalObject;
 import java.util.List;
 
-import EvalObject.EvalObject;
-
-public class Builtin implements EvalObject {
+public class BuiltinEval implements EvalObject {
 
     public BuiltinFunction fn;
 
-    public Builtin(BuiltinFunction fn) {
+    public BuiltinEval(BuiltinFunction fn) {
         this.fn = fn;
     }
 
