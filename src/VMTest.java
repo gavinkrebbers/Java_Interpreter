@@ -398,4 +398,17 @@ public class VMTest {
         runVmTests(tests);
     }
 
+    @Test
+    public void testCallingFunctionsWithArgumentsAndBindings() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase(
+            "let identity = fn(a) { a; }; identity(4);",
+            4
+            ),
+            new VmTestCase(
+            "let sum = fn(a, b) { a + b; }; sum(1, 2);",
+            3
+            ),};
+        runVmTests(tests);
+    }
 }

@@ -6,6 +6,7 @@ public class CompiledFunction implements EvalObject {
 
     public Instructions instructions;
     public int numLocals;
+    public int numArgs;
 
     public CompiledFunction(Instructions instructions) {
         this.instructions = instructions;
@@ -15,6 +16,12 @@ public class CompiledFunction implements EvalObject {
     public CompiledFunction(Instructions instructions, int numLocals) {
         this.instructions = instructions;
         this.numLocals = numLocals;
+    }
+
+    public CompiledFunction(Instructions instructions, int numLocals, int numArgs) {
+        this.instructions = instructions;
+        this.numLocals = numLocals;
+        this.numArgs = numArgs;
     }
 
     public Instructions getInstructions() {

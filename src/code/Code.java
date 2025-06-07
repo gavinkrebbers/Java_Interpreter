@@ -83,7 +83,7 @@ public class Code {
         addDefinition(OpArray, "OpArray", 2);
         addDefinition(OpHash, "OpHash", 2);
         addDefinition(OpIndex, "OpIndex");
-        addDefinition(OpCall, "OpCall");
+        addDefinition(OpCall, "OpCall", 1);
         addDefinition(OpReturnObject, "OpReturnObject");
         addDefinition(OpReturn, "OpReturn");
         addDefinition(OpGetLocal, "OpGetLocal", 1);

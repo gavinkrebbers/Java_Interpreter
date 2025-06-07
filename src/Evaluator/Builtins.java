@@ -1,5 +1,12 @@
-package EvalObject;
+package Evaluator;
 
+import EvalObject.ArrayObj;
+import EvalObject.BooleanObj;
+import EvalObject.ErrorObj;
+import EvalObject.EvalObject;
+import EvalObject.IntegerObj;
+import EvalObject.NullObj;
+import EvalObject.StringObj;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +17,6 @@ public class Builtins {
     public static final EvalObject TRUE = new BooleanObj(true);
     public static final EvalObject FALSE = new BooleanObj(false);
 
-   
     public static final Map<String, EvalObject> builtins = new java.util.HashMap<>();
 
     static {

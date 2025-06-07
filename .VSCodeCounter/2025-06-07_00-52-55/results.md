@@ -1,34 +1,34 @@
 # Summary
 
-Date : 2025-05-23 00:21:36
+Date : 2025-06-07 00:52:55
 
 Directory c:\\Computer Science Stuff\\Compiler\\Monkey_java
 
-Total : 60 files,  3752 codes, 32 comments, 987 blanks, all 4771 lines
+Total : 70 files,  5618 codes, 71 comments, 1215 blanks, all 6904 lines
 
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
 ## Languages
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Java | 59 | 3,736 | 32 | 979 | 4,747 |
+| Java | 69 | 5,602 | 71 | 1,207 | 6,880 |
 | Markdown | 1 | 16 | 0 | 8 | 24 |
 
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 60 | 3,752 | 32 | 987 | 4,771 |
+| . | 70 | 5,618 | 71 | 1,215 | 6,904 |
 | . (Files) | 1 | 16 | 0 | 8 | 24 |
-| src | 59 | 3,736 | 32 | 979 | 4,747 |
-| src (Files) | 8 | 1,511 | 22 | 357 | 1,890 |
-| src\\Compiler | 3 | 93 | 1 | 30 | 124 |
-| src\\EvalObject | 17 | 451 | 3 | 163 | 617 |
-| src\\Evaluator | 1 | 338 | 2 | 52 | 392 |
+| src | 69 | 5,602 | 71 | 1,207 | 6,880 |
+| src (Files) | 9 | 2,527 | 61 | 440 | 3,028 |
+| src\\Compiler | 5 | 329 | 4 | 67 | 400 |
+| src\\EvalObject | 19 | 482 | 0 | 176 | 658 |
+| src\\Evaluator | 3 | 449 | 2 | 83 | 534 |
 | src\\Lexer | 1 | 154 | 0 | 23 | 177 |
 | src\\Parser | 1 | 367 | 0 | 75 | 442 |
 | src\\Token | 2 | 76 | 4 | 24 | 104 |
-| src\\ast | 20 | 523 | 0 | 197 | 720 |
-| src\\code | 4 | 149 | 0 | 37 | 186 |
-| src\\vm | 2 | 74 | 0 | 21 | 95 |
+| src\\ast | 20 | 528 | 0 | 198 | 726 |
+| src\\code | 6 | 301 | 0 | 58 | 359 |
+| src\\vm | 3 | 389 | 0 | 63 | 452 |
 
 Summary / [Details](details.md) / [Diff Summary](diff.md) / [Diff Details](diff-details.md)

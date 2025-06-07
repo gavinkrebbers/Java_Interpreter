@@ -1,6 +1,4 @@
 
-import Compiler.Compiler;
-import Compiler.CompilerError;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
@@ -14,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import vm.ExecutionError;
 import vm.VM;
 
 public class REPL {
@@ -51,13 +48,11 @@ public class REPL {
 
                 try {
                     comp.compile(program);
-
                 } catch (CompilerError e) {
                     System.out.println("execution error" + e);
                     return;
                 }
                 VM machine = new VM(comp.bytecode(), globals);
-
                 try {
                     machine.run();
                 } catch (ExecutionError e) {

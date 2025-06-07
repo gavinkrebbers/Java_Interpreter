@@ -40,6 +40,9 @@ public class SymbolTable {
     public Symbol resolve(String name) {
         Symbol curSymbol = store.get(name);
         if (curSymbol == null) {
+            if (this.outer == null) {
+                return null;
+            }
             curSymbol = outer.resolve(name);
         }
         return curSymbol;

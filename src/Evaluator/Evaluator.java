@@ -2,8 +2,6 @@ package Evaluator;
 
 import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
-import EvalObject.Builtin;
-import EvalObject.Builtins;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;

@@ -45,7 +45,6 @@ public class Compiler {
     public static final BooleanObj FALSE = new BooleanObj(false);
 
     public Compiler() {
-        // this.instructions = new Instructions(new byte[0]);
         this.constants = new ArrayList<>();
         this.symbolTable = new SymbolTable();
         this.scopes = new ArrayList<>();
@@ -194,9 +193,15 @@ public class Compiler {
             compile(indexExpression.left);
             compile(indexExpression.index);
             emit(Code.OpIndex);
-
         } else if (node instanceof FunctionLiteral functionLiteral) {
             pushScope();
+            // TODO loop through all of the params and compile them
+            for (Expression expr : functionLiteral.parameters) {
+                if (expr instanceof Identifier identifier) {
+                    Symbol newSymbol = new Symbol(identifier.value, SymbolTable.LocalScope, symbolTable.numDefinitions);
+                    symbolTable.define(newSymbol.name);
+                }
+            }
             compile(functionLiteral.body);
             if (lastInstructionIs(Code.OpPop)) {
                 removeLastPop();
@@ -207,11 +212,14 @@ public class Compiler {
             }
             int numLocals = symbolTable.numDefinitions;
             Instructions ins = popScope();
-            CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals);
+            CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals, functionLiteral.parameters.size());
             emit(Code.OpConstant, addConstant(compiledFunction));
         } else if (node instanceof CallExpression callExpression) {
             compile(callExpression.function);
-            emit(Code.OpCall);
+            for (Expression expr : callExpression.arguments) {
+                compile(expr);
+            }
+            emit(Code.OpCall, callExpression.arguments.size());
         } else if (node instanceof ReturnStatement returnStatement) {
             compile(returnStatement.returnValue);
             emit(Code.OpReturnObject);

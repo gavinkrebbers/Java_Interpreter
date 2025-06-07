@@ -609,107 +609,58 @@ public class CompilerTest {
     }
 
     @Test
-    public void testFunctions() {
+    public void testLetStatementScopes() {
         List<CompilerTestCase> tests = Arrays.asList(
                 new CompilerTestCase(
-                        "fn() { return 5 + 10 }",
+                        "let num = 55; fn() { num }",
                         Arrays.asList(
-                                5,
-                                10,
+                                55,
                                 Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0),
-                                        Code.Make(Code.OpConstant, 1),
-                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpGetGlobal, 0),
                                         Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
-                                Code.Make(Code.OpPop)
-                        )
-                ),
-                new CompilerTestCase(
-                        "fn() { 5 + 10 }",
-                        Arrays.asList(
-                                5,
-                                10,
-                                Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0),
-                                        Code.Make(Code.OpConstant, 1),
-                                        Code.Make(Code.OpAdd),
-                                        Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
-                                Code.Make(Code.OpPop)
-                        )
-                ),
-                new CompilerTestCase(
-                        "fn() { 1; 2 }",
-                        Arrays.asList(
-                                1,
-                                2,
-                                Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0),
-                                        Code.Make(Code.OpPop),
-                                        Code.Make(Code.OpConstant, 1),
-                                        Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
-                                Code.Make(Code.OpPop)
-                        )
-                ),
-                new CompilerTestCase(
-                        "fn() { }",
-                        Arrays.asList(
-                                Arrays.asList(
-                                        Code.Make(Code.OpReturn)
                                 )
                         ),
                         Arrays.asList(
                                 Code.Make(Code.OpConstant, 0),
-                                Code.Make(Code.OpPop)
-                        )
-                )
-        );
-        runCompilerTests(tests);
-    }
-
-    @Test
-    public void testFunctionCalls() {
-        List<CompilerTestCase> tests = Arrays.asList(
-                new CompilerTestCase(
-                        "fn() { 24 }();",
-                        Arrays.asList(
-                                24,
-                                Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0), // The literal "24"
-                                        Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 1), // The compiled function
-                                Code.Make(Code.OpCall),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
                                 Code.Make(Code.OpPop)
                         )
                 ),
                 new CompilerTestCase(
-                        "let noArg = fn() { 24 }; noArg();",
+                        "fn() { let num = 55; num }",
                         Arrays.asList(
-                                24,
+                                55,
                                 Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0), // The literal "24"
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpGetLocal, 0),
                                         Code.Make(Code.OpReturnObject)
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 1), // The compiled function
-                                Code.Make(Code.OpSetGlobal, 0),
-                                Code.Make(Code.OpGetGlobal, 0),
-                                Code.Make(Code.OpCall),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { let a = 55; let b = 77; a + b }",
+                        Arrays.asList(
+                                55,
+                                77,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpConstant, 1),
+                                        Code.Make(Code.OpSetLocal, 1),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpGetLocal, 1),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 2),
                                 Code.Make(Code.OpPop)
                         )
                 )
@@ -781,52 +732,16 @@ public class CompilerTest {
     }
 
     @Test
-    public void testLetStatementScopes() {
+    public void testFunctions() {
         List<CompilerTestCase> tests = Arrays.asList(
                 new CompilerTestCase(
-                        "let num = 55; fn() { num }",
+                        "fn() { return 5 + 10 }",
                         Arrays.asList(
-                                55,
-                                Arrays.asList(
-                                        Code.Make(Code.OpGetGlobal, 0),
-                                        Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
-                                Code.Make(Code.OpSetGlobal, 0),
-                                Code.Make(Code.OpConstant, 1),
-                                Code.Make(Code.OpPop)
-                        )
-                ),
-                new CompilerTestCase(
-                        "fn() { let num = 55; num }",
-                        Arrays.asList(
-                                55,
+                                5,
+                                10,
                                 Arrays.asList(
                                         Code.Make(Code.OpConstant, 0),
-                                        Code.Make(Code.OpSetLocal, 0),
-                                        Code.Make(Code.OpGetLocal, 0),
-                                        Code.Make(Code.OpReturnObject)
-                                )
-                        ),
-                        Arrays.asList(
-                                Code.Make(Code.OpConstant, 1),
-                                Code.Make(Code.OpPop)
-                        )
-                ),
-                new CompilerTestCase(
-                        "fn() { let a = 55; let b = 77; a + b }",
-                        Arrays.asList(
-                                55,
-                                77,
-                                Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0),
-                                        Code.Make(Code.OpSetLocal, 0),
                                         Code.Make(Code.OpConstant, 1),
-                                        Code.Make(Code.OpSetLocal, 1),
-                                        Code.Make(Code.OpGetLocal, 0),
-                                        Code.Make(Code.OpGetLocal, 1),
                                         Code.Make(Code.OpAdd),
                                         Code.Make(Code.OpReturnObject)
                                 )
@@ -835,8 +750,176 @@ public class CompilerTest {
                                 Code.Make(Code.OpConstant, 2),
                                 Code.Make(Code.OpPop)
                         )
+                ),
+                new CompilerTestCase(
+                        "fn() { 5 + 10 }",
+                        Arrays.asList(
+                                5,
+                                10,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpConstant, 1),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { 1; 2 }",
+                        Arrays.asList(
+                                1,
+                                2,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpPop),
+                                        Code.Make(Code.OpConstant, 1),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { }",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpReturn)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let oneArg = fn(a) { }; oneArg(24);",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpReturn)
+                                ),
+                                24
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpCall, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let manyArg = fn(a, b, c) { }; manyArg(24, 25, 26);",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpReturn)
+                                ),
+                                24,
+                                25,
+                                26
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpCall, 3),
+                                Code.Make(Code.OpPop)
+                        )
                 )
         );
         runCompilerTests(tests);
     }
+
+    @Test
+    public void testFunctionCalls() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "fn() { 24 }();",
+                        Arrays.asList(
+                                24,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0), // The literal "24"
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpCall),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let noArg = fn() { 24 }; noArg();",
+                        Arrays.asList(
+                                24,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 0),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpCall),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let oneArg = fn(a) { a }; oneArg(24);",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpReturnObject)
+                                ),
+                                24
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpCall, 1),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "let manyArg = fn(a, b, c) { a; b; c }; manyArg(24, 25, 26);",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpPop),
+                                        Code.Make(Code.OpGetLocal, 1),
+                                        Code.Make(Code.OpPop),
+                                        Code.Make(Code.OpGetLocal, 2),
+                                        Code.Make(Code.OpReturnObject)
+                                ),
+                                24,
+                                25,
+                                26
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpGetGlobal, 0),
+                                Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpConstant, 3),
+                                Code.Make(Code.OpCall, 3),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
+
 }

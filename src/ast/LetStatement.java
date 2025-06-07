@@ -8,6 +8,12 @@ public class LetStatement implements Statement {
     public Identifier identifier;
     public Expression value;
 
+    public LetStatement(Token token, Identifier identifier, Expression value) {
+        this.token = token;
+        this.identifier = identifier;
+        this.value = value;
+    }
+
     public LetStatement(Token token) {
         this.token = token;
     }

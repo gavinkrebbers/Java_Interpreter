@@ -5,7 +5,6 @@ import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
 import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
-import EvalObject.FunctionObj;
 import EvalObject.HashKey;
 import EvalObject.HashObj;
 import EvalObject.Hashable;
@@ -137,20 +136,25 @@ public class VM {
                     executeIndexExpression();
                     break;
                 case Code.OpCallValue:
-                    EvalObject top = stackTop();
-                    if (top instanceof FunctionObj) {
+                    int numArgs = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    currentFrame().ip++;
+
+                    EvalObject stackObj = stack[sp - numArgs - 1];
+                    if (!(stackObj instanceof CompiledFunction)) {
                         throw new ExecutionError("calling non function");
                     }
-                    CompiledFunction func = (CompiledFunction) top;
-                    Frame frame = new Frame(func, sp);
+                    CompiledFunction functionObject = (CompiledFunction) stackObj;
+                    if (functionObject.numArgs != numArgs) {
+                        throw new ExecutionError("wrong number of arguments");
+                    }
+                    Frame frame = new Frame(functionObject, sp - numArgs);
                     pushFrame(frame);
-                    sp = frame.basePointer + func.numLocals;
+                    sp = frame.basePointer + functionObject.numLocals;
                     break;
                 case Code.OpReturnObjectValue:
                     EvalObject pop = pop();
                     frame = popFrame();
                     sp = frame.basePointer - 1;
-                    // pop();
                     push(pop);
                     break;
                 case Code.OpReturnValue:
