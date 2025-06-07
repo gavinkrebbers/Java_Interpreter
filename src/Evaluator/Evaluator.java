@@ -2,6 +2,7 @@ package Evaluator;
 
 import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
+import EvalObject.Builtin;
 import EvalObject.Environment;
 import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
@@ -149,10 +150,10 @@ public class Evaluator {
     }
 
     public EvalObject applyFunction(EvalObject func, List<EvalObject> args) {
-        if (!(func instanceof FunctionObj) && !(func instanceof BuiltinEval)) {
+        if (!(func instanceof FunctionObj) && !(func instanceof Builtin)) {
             return newError("not a function:", func.type());
         }
-        if (func instanceof BuiltinEval builtin) {
+        if (func instanceof Builtin builtin) {
             // Call the builtin function with the arguments
             return builtin.fn.apply(args);
         }

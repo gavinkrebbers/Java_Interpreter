@@ -31,6 +31,7 @@ public class Code {
     public static final byte OpReturnValue = 24;
     public static final byte OpSetLocalValue = 25;
     public static final byte OpGetLocalValue = 26;
+    public static final byte OpGetBuiltinValue = 27;
 
     public static final Opcode OpConstant = new Opcode(OpConstantValue);
     public static final Opcode OpPop = new Opcode(OpPopValue);
@@ -58,6 +59,7 @@ public class Code {
     public static final Opcode OpReturn = new Opcode(OpReturnValue);
     public static final Opcode OpSetLocal = new Opcode(OpSetLocalValue);
     public static final Opcode OpGetLocal = new Opcode(OpGetLocalValue);
+    public static final Opcode OpGetBuiltin = new Opcode(OpGetBuiltinValue);
 
     private static final Map<Opcode, Definition> definitions = new HashMap<>();
 
@@ -88,6 +90,7 @@ public class Code {
         addDefinition(OpReturn, "OpReturn");
         addDefinition(OpGetLocal, "OpGetLocal", 1);
         addDefinition(OpSetLocal, "OpSetLocal", 1);
+        addDefinition(OpGetBuiltin, "OpGetBuiltinValue", 1);
 
     }
 

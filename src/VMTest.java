@@ -4,6 +4,7 @@ import Compiler.Compiler;
 import Compiler.CompilerError;
 import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
+import EvalObject.ErrorObj;
 
 import org.junit.Test;
 import static org.junit.Assert.fail;
@@ -109,6 +110,19 @@ public class VMTest {
                 testArrayObject((int[]) expected, actual);
             } else if (expected instanceof Map) {
                 testHashObject((Map<HashKey, Long>) expected, actual);
+            } else if (expected instanceof ErrorObj) {
+                if (!(actual instanceof ErrorObj)) {
+                    throw new Exception(String.format("object is not ErrorObj. got=%s", actual));
+                }
+                ErrorObj expectedError = (ErrorObj) expected;
+                ErrorObj actualError = (ErrorObj) actual;
+                if (!expectedError.message.equals(actualError.message)) {
+                    throw new Exception(String.format(
+                            "wrong error message. expected=%s, got=%s",
+                            expectedError.message,
+                            actualError.message
+                    ));
+                }
             } else {
                 fail("unhandled expected type: " + (expected == null ? "null" : expected.getClass()));
             }
@@ -409,6 +423,31 @@ public class VMTest {
             "let sum = fn(a, b) { a + b; }; sum(1, 2);",
             3
             ),};
+        runVmTests(tests);
+    }
+
+    @Test
+    public void testBuiltinFunctions() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase("len(\"\")", 0),
+            new VmTestCase("len(\"four\")", 4),
+            new VmTestCase("len(\"hello world\")", 11),
+            new VmTestCase("len(1)", new ErrorObj("argument to `len` not supported, got INTEGER")),
+            new VmTestCase("len(\"one\", \"two\")", new ErrorObj("wrong number of arguments. got=2, want=1")),
+            new VmTestCase("len([1, 2, 3])", 3),
+            new VmTestCase("len([])", 0),
+            new VmTestCase("print(\"hello\", \"world!\")", new NullObj()),
+            new VmTestCase("first([1, 2, 3])", 1),
+            new VmTestCase("first([])", new NullObj()),
+            new VmTestCase("first(1)", new ErrorObj("argument to `first` must be ARRAY, got INTEGER")),
+            new VmTestCase("last([1, 2, 3])", 3),
+            new VmTestCase("last([])", new NullObj()),
+            new VmTestCase("last(1)", new ErrorObj("argument to `last` must be ARRAY, got INTEGER")),
+            new VmTestCase("rest([1, 2, 3])", new int[]{2, 3}),
+            new VmTestCase("rest([])", new NullObj()),
+            new VmTestCase("push([], 1)", new int[]{1}),
+            new VmTestCase("push(1, 1)", new ErrorObj("argument to `push` must be ARRAY, got INTEGER")),};
+
         runVmTests(tests);
     }
 }

@@ -3,6 +3,8 @@ package vm;
 import Compiler.Bytecode;
 import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
+import EvalObject.Builtin;
+import EvalObject.Builtins;
 import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
 import EvalObject.HashKey;
@@ -74,6 +76,11 @@ public class VM {
             op = new Opcode(ins.instructions[ip]);
             byte opValue = op.value;
             switch (opValue) {
+                case Code.OpGetBuiltinValue:
+                    int builtinIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    currentFrame().ip++;
+                    push(Builtins.builtins[builtinIndex]);
+                    break;
                 case Code.OpConstantValue:
                     int constIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
                     currentFrame().ip += 2;
@@ -140,20 +147,33 @@ public class VM {
                     currentFrame().ip++;
 
                     EvalObject stackObj = stack[sp - numArgs - 1];
-                    if (!(stackObj instanceof CompiledFunction)) {
+
+                    if (stackObj instanceof CompiledFunction compiledFunction) {
+                        CompiledFunction functionObject = (CompiledFunction) stackObj;
+                        if (functionObject.numArgs != numArgs) {
+                            throw new ExecutionError("wrong number of arguments");
+                        }
+                        Frame frame = new Frame(functionObject, sp - numArgs);
+                        pushFrame(frame);
+                        sp = frame.basePointer + functionObject.numLocals;
+                    } else if (stackObj instanceof Builtin builtin) {
+                        List<EvalObject> args = new ArrayList<>();
+                        for (int i = sp - numArgs; i < sp; i++) {
+                            args.add(stack[i]);
+                        }
+                        EvalObject result = builtin.fn.apply(args);
+                        // Remove arguments and the builtin from the stack
+                        sp = sp - numArgs - 1;
+                        // Push the result
+                        push(result);
+                    } else {
                         throw new ExecutionError("calling non function");
                     }
-                    CompiledFunction functionObject = (CompiledFunction) stackObj;
-                    if (functionObject.numArgs != numArgs) {
-                        throw new ExecutionError("wrong number of arguments");
-                    }
-                    Frame frame = new Frame(functionObject, sp - numArgs);
-                    pushFrame(frame);
-                    sp = frame.basePointer + functionObject.numLocals;
+
                     break;
                 case Code.OpReturnObjectValue:
                     EvalObject pop = pop();
-                    frame = popFrame();
+                    Frame frame = popFrame();
                     sp = frame.basePointer - 1;
                     push(pop);
                     break;

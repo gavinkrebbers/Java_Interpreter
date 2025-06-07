@@ -922,4 +922,40 @@ public class CompilerTest {
         runCompilerTests(tests);
     }
 
+    @Test
+    public void testBuiltins() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "len([]); push([], 1);",
+                        Arrays.asList(1),
+                        Arrays.asList(
+                                Code.Make(Code.OpGetBuiltin, 0),
+                                Code.Make(Code.OpArray, 0),
+                                Code.Make(Code.OpCall, 1),
+                                Code.Make(Code.OpPop),
+                                Code.Make(Code.OpGetBuiltin, 5),
+                                Code.Make(Code.OpArray, 0),
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpCall, 2),
+                                Code.Make(Code.OpPop)
+                        )
+                ),
+                new CompilerTestCase(
+                        "fn() { len([]) }",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetBuiltin, 0),
+                                        Code.Make(Code.OpArray, 0),
+                                        Code.Make(Code.OpCall, 1),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        );
+        runCompilerTests(tests);
+    }
 }

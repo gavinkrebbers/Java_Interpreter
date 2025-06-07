@@ -1,6 +1,7 @@
 package Compiler;
 
 import EvalObject.BooleanObj;
+import EvalObject.Builtins;
 import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
 import EvalObject.IntegerObj;
@@ -47,6 +48,9 @@ public class Compiler {
     public Compiler() {
         this.constants = new ArrayList<>();
         this.symbolTable = new SymbolTable();
+        for (int i = 0; i < Builtins.builtins.length; i++) {
+            symbolTable.defineBuiltin(i, Builtins.builtins[i].name);
+        }
         this.scopes = new ArrayList<>();
         this.scopes.add(new CompilationScope());
         this.scopeIndex = 0;
@@ -188,14 +192,15 @@ public class Compiler {
             if (symbol == null) {
                 throw new CompilerError("Unrecognized identifier: " + identifier.value);
             }
-            emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpGetGlobal : Code.OpGetLocal, symbol.index);
+            loadSymbol(symbol);
+            // emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpGetGlobal : Code.OpGetLocal, symbol.index);
+
         } else if (node instanceof IndexExpression indexExpression) {
             compile(indexExpression.left);
             compile(indexExpression.index);
             emit(Code.OpIndex);
         } else if (node instanceof FunctionLiteral functionLiteral) {
             pushScope();
-            // TODO loop through all of the params and compile them
             for (Expression expr : functionLiteral.parameters) {
                 if (expr instanceof Identifier identifier) {
                     Symbol newSymbol = new Symbol(identifier.value, SymbolTable.LocalScope, symbolTable.numDefinitions);
@@ -308,5 +313,21 @@ public class Compiler {
         symbolTable = symbolTable.outer;
         return ins;
 
+    }
+
+    public void loadSymbol(Symbol symbol) throws CompilerError {
+        switch (symbol.scope) {
+            case SymbolTable.LocalScope:
+                emit(Code.OpGetLocal, symbol.index);
+                break;
+            case SymbolTable.GlobalScope:
+                emit(Code.OpGetGlobal, symbol.index);
+                break;
+            case SymbolTable.BuiltinScope:
+                emit(Code.OpGetBuiltin, symbol.index);
+                break;
+            default:
+                throw new CompilerError("error in load symbol");
+        }
     }
 }

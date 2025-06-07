@@ -10,6 +10,7 @@ public class SymbolTable {
 
     public static final String GlobalScope = "GLOBAL";
     public static final String LocalScope = "LOCAL";
+    public static final String BuiltinScope = "BUILTIN";
 
     public SymbolTable() {
         this.store = new java.util.HashMap<>();
@@ -35,6 +36,11 @@ public class SymbolTable {
         store.put(name, newSymbol);
         numDefinitions++;
         return newSymbol;
+    }
+
+    public Symbol defineBuiltin(int index, String name) {
+        Symbol symbol = new Symbol(name, BuiltinScope, index);
+        return store.put(name, symbol);
     }
 
     public Symbol resolve(String name) {

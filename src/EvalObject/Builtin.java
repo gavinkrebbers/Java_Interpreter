@@ -30,5 +30,4 @@ public class Builtin implements EvalObject {
 
         EvalObject apply(List<EvalObject> args);
     }
-
 }

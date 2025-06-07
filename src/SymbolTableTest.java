@@ -2,6 +2,7 @@
 import code.Code;
 import code.Symbol;
 import code.SymbolTable;
+import java.util.Arrays;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -67,6 +68,34 @@ public class SymbolTableTest {
             Symbol result = local.resolve(sym.name);
             assertNotNull("Name " + sym.name + " not resolvable", result);
             assertEquals(sym, result);
+        }
+    }
+
+    @Test
+    public void testDefineResolveBuiltins() {
+        SymbolTable global = new SymbolTable();
+        SymbolTable firstLocal = new SymbolTable(global);
+        SymbolTable secondLocal = new SymbolTable(firstLocal);
+
+        Symbol[] expected = {
+            new Symbol("a", SymbolTable.BuiltinScope, 0),
+            new Symbol("c", SymbolTable.BuiltinScope, 1),
+            new Symbol("e", SymbolTable.BuiltinScope, 2),
+            new Symbol("f", SymbolTable.BuiltinScope, 3)
+        };
+
+        // Define builtins in global scope
+        for (int i = 0; i < expected.length; i++) {
+            global.defineBuiltin(i, expected[i].name);
+        }
+
+        // Test resolution in all scopes
+        for (SymbolTable table : Arrays.asList(global, firstLocal, secondLocal)) {
+            for (Symbol sym : expected) {
+                Symbol result = table.resolve(sym.name);
+                assertNotNull("Name " + sym.name + " not resolvable", result);
+                assertEquals(sym, result);
+            }
         }
     }
 }
