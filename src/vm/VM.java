@@ -5,6 +5,7 @@ import EvalObject.ArrayObj;
 import EvalObject.BooleanObj;
 import EvalObject.Builtin;
 import EvalObject.Builtins;
+import EvalObject.Closure;
 import EvalObject.CompiledFunction;
 import EvalObject.EvalObject;
 import EvalObject.HashKey;
@@ -17,6 +18,7 @@ import EvalObject.StringObj;
 import code.Code;
 import code.Instructions;
 import code.Opcode;
+import java.lang.classfile.Instruction;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -46,20 +48,25 @@ public class VM {
 
     public VM(Bytecode bytecode) {
         CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
+        Closure mainClosure = new Closure(mainFunction);
+        Frame mainFrame = new Frame(mainClosure, 0);
+
         this.constants = bytecode.constants;
         this.frames = new ArrayDeque<>();
-        this.frames.add(new Frame(mainFunction, 0));
+        this.frames.add(mainFrame);
         this.framesIndex = 1;
     }
 
     public VM(Bytecode bytecode, List<EvalObject> globals) {
         CompiledFunction mainFunction = new CompiledFunction(bytecode.instructions);
+        Closure mainClosure = new Closure(mainFunction);
+        Frame mainFrame = new Frame(mainClosure, 0);
 
         this.constants = bytecode.constants;
         this.globals = globals;
 
         this.frames = new ArrayDeque<>();
-        this.frames.add(new Frame(mainFunction, 0));
+        this.frames.add(mainFrame);
         this.framesIndex = 1;
     }
 
@@ -74,8 +81,15 @@ public class VM {
             ip = currentFrame().ip;
             ins = currentFrame().getInstructions();
             op = new Opcode(ins.instructions[ip]);
+            String helper = currentFrame().getInstructions().toString();
             byte opValue = op.value;
             switch (opValue) {
+                case Code.OpClosureValue:
+                    int funcIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    int freeVars = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 3]});
+                    currentFrame().ip += 3;
+                    pushClosure(funcIndex);
+                    break;
                 case Code.OpGetBuiltinValue:
                     int builtinIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
                     currentFrame().ip++;
@@ -84,6 +98,8 @@ public class VM {
                 case Code.OpConstantValue:
                     int constIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
                     currentFrame().ip += 2;
+                    // this is the error 
+                    // sp gets set to -1????
                     push(constants.get(constIndex));
                     break;
                 case Code.OpAddValue, Code.OpSubValue, Code.OpMulValue, Code.OpDivValue:
@@ -145,31 +161,7 @@ public class VM {
                 case Code.OpCallValue:
                     int numArgs = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
                     currentFrame().ip++;
-
-                    EvalObject stackObj = stack[sp - numArgs - 1];
-
-                    if (stackObj instanceof CompiledFunction compiledFunction) {
-                        CompiledFunction functionObject = (CompiledFunction) stackObj;
-                        if (functionObject.numArgs != numArgs) {
-                            throw new ExecutionError("wrong number of arguments");
-                        }
-                        Frame frame = new Frame(functionObject, sp - numArgs);
-                        pushFrame(frame);
-                        sp = frame.basePointer + functionObject.numLocals;
-                    } else if (stackObj instanceof Builtin builtin) {
-                        List<EvalObject> args = new ArrayList<>();
-                        for (int i = sp - numArgs; i < sp; i++) {
-                            args.add(stack[i]);
-                        }
-                        EvalObject result = builtin.fn.apply(args);
-                        // Remove arguments and the builtin from the stack
-                        sp = sp - numArgs - 1;
-                        // Push the result
-                        push(result);
-                    } else {
-                        throw new ExecutionError("calling non function");
-                    }
-
+                    executeCall(numArgs);
                     break;
                 case Code.OpReturnObjectValue:
                     EvalObject pop = pop();
@@ -364,6 +356,39 @@ public class VM {
 
         } else {
             throw new ExecutionError("invalid index expression");
+        }
+    }
+
+    public void executeCall(int numArgs) throws ExecutionError {
+
+        EvalObject callee = stack[sp - numArgs - 1];
+
+        if (callee instanceof Closure closure) {
+            Frame frame = new Frame(closure, sp - numArgs);
+            pushFrame(frame);
+            sp = frame.basePointer + closure.function.numLocals;
+
+        } else if (callee instanceof Builtin builtin) {
+            List<EvalObject> args = new ArrayList<>();
+            for (int i = sp - numArgs; i < sp; i++) {
+                args.add(stack[i]);
+            }
+            EvalObject result = builtin.fn.apply(args);
+            sp = sp - numArgs - 1;
+            push(result);
+        } else {
+            throw new ExecutionError("calling non function");
+        }
+
+    }
+
+    public void pushClosure(int functionIndex) throws ExecutionError {
+        EvalObject constant = constants.get(functionIndex);
+        if (constant instanceof CompiledFunction compiledFunction) {
+            Closure closure = new Closure(compiledFunction);
+            push(closure);
+        } else {
+            throw new ExecutionError("not a funciton");
         }
     }
 

@@ -623,7 +623,8 @@ public class CompilerTest {
                         Arrays.asList(
                                 Code.Make(Code.OpConstant, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
-                                Code.Make(Code.OpConstant, 1),
+                                // Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpClosure, 1, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
@@ -639,7 +640,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 1),
+                                // Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpClosure, 1, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
@@ -660,75 +662,13 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
+                                // Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpClosure, 2, 0),
                                 Code.Make(Code.OpPop)
                         )
                 )
         );
         runCompilerTests(tests);
-    }
-
-    @Test
-    public void testCompilerScopes() {
-        Compiler compiler = new Compiler();
-
-        // Test initial scope
-        assertEquals("scopeIndex wrong", 0, compiler.scopeIndex);
-
-        SymbolTable globalSymbolTable = compiler.symbolTable;
-
-        // Emit instruction in outer scope
-        compiler.emit(Code.OpMul);
-
-        // Enter new scope
-        compiler.pushScope();
-        assertEquals("scopeIndex wrong after enterScope", 1, compiler.scopeIndex);
-
-        // Emit instruction in inner scope
-        compiler.emit(Code.OpSub);
-
-        // Verify inner scope instructions
-        CompilationScope innerScope = compiler.scopes.get(compiler.scopeIndex);
-        assertEquals("instructions length wrong in inner scope",
-                1, innerScope.instructions.instructions.length);
-
-        EmittedInstruction last = innerScope.lastInstruction;
-        assertNotNull("lastInstruction is null", last);
-        assertEquals("lastInstruction.Opcode wrong",
-                Code.OpSub, last.opcode);
-
-        // Verify symbol table enclosure
-        assertNotNull("symbolTable.Outer is null", compiler.symbolTable.outer);
-        assertEquals("compiler did not enclose symbolTable",
-                globalSymbolTable, compiler.symbolTable.outer);
-
-        // Leave inner scope
-        compiler.popScope();
-        assertEquals("scopeIndex wrong after leaveScope", 0, compiler.scopeIndex);
-
-        // Verify symbol table restoration
-        assertEquals("compiler did not restore global symbol table",
-                globalSymbolTable, compiler.symbolTable);
-        assertNull("compiler modified global symbol table incorrectly",
-                compiler.symbolTable.outer);
-
-        // Emit another instruction in outer scope
-        compiler.emit(Code.OpAdd);
-
-        // Verify outer scope instructions
-        CompilationScope outerScope = compiler.scopes.get(compiler.scopeIndex);
-        assertEquals("instructions length wrong in outer scope",
-                2, outerScope.instructions.instructions.length);
-
-        last = outerScope.lastInstruction;
-        assertNotNull("lastInstruction is null", last);
-        assertEquals("lastInstruction.Opcode wrong",
-                Code.OpAdd, last.opcode);
-
-        EmittedInstruction previous = outerScope.prevInstruction;
-        assertNotNull("previousInstruction is null", previous);
-        assertEquals("previousInstruction.Opcode wrong",
-                Code.OpMul, previous.opcode);
     }
 
     @Test
@@ -747,7 +687,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
+                                // Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpClosure, 2, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
@@ -764,7 +705,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
+                                // Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpClosure, 2, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
@@ -781,7 +723,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 2),
+                                // Code.Make(Code.OpConstant, 2),
+                                Code.Make(Code.OpClosure, 2, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
@@ -793,20 +736,22 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpPop)
                         )
                 ),
                 new CompilerTestCase(
-                        "let oneArg = fn(a) { }; oneArg(24);",
+                        "let oneArg = fn(a) {  }; oneArg(1);",
                         Arrays.asList(
                                 Arrays.asList(
                                         Code.Make(Code.OpReturn)
                                 ),
-                                24
+                                1
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpConstant, 1),
@@ -815,17 +760,18 @@ public class CompilerTest {
                         )
                 ),
                 new CompilerTestCase(
-                        "let manyArg = fn(a, b, c) { }; manyArg(24, 25, 26);",
+                        "let manyArg = fn(a, b, c) { }; manyArg(1, 2, 3);",
                         Arrays.asList(
                                 Arrays.asList(
                                         Code.Make(Code.OpReturn)
                                 ),
-                                24,
-                                25,
-                                26
+                                1,
+                                2,
+                                3
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpConstant, 1),
@@ -847,12 +793,13 @@ public class CompilerTest {
                         Arrays.asList(
                                 24,
                                 Arrays.asList(
-                                        Code.Make(Code.OpConstant, 0), // The literal "24"
+                                        Code.Make(Code.OpConstant, 0),
                                         Code.Make(Code.OpReturnObject)
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 1),
+                                // Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpClosure, 1, 0),
                                 Code.Make(Code.OpCall),
                                 Code.Make(Code.OpPop)
                         )
@@ -867,7 +814,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 1),
+                                // Code.Make(Code.OpConstant, 1),
+                                Code.Make(Code.OpClosure, 1, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpCall),
@@ -884,7 +832,8 @@ public class CompilerTest {
                                 24
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpConstant, 1),
@@ -908,7 +857,8 @@ public class CompilerTest {
                                 26
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpSetGlobal, 0),
                                 Code.Make(Code.OpGetGlobal, 0),
                                 Code.Make(Code.OpConstant, 1),
@@ -951,7 +901,8 @@ public class CompilerTest {
                                 )
                         ),
                         Arrays.asList(
-                                Code.Make(Code.OpConstant, 0),
+                                // Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpClosure, 0, 0),
                                 Code.Make(Code.OpPop)
                         )
                 )

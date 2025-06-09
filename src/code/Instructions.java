@@ -25,7 +25,7 @@ public class Instructions {
     }
 
     public static int readUint8(byte[] bytes) {
-        return bytes[0];
+        return bytes[0] & 0xFF;
     }
 
     public void addInstruction(byte[] newInstruction) {

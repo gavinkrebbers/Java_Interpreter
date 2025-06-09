@@ -1,0 +1,105 @@
+Date : 2025-06-08 21:54:55
+Directory : c:\Computer Science Stuff\Compiler\Monkey_java
+Total : 68 files,  5695 codes, 73 comments, 1188 blanks, all 6956 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Java     |         67 |      5,679 |         73 |      1,180 |      6,932 |
+| Markdown |          1 |         16 |          0 |          8 |         24 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |         68 |      5,695 |         73 |      1,188 |      6,956 |
+| . (Files)                                                                           |          1 |         16 |          0 |          8 |         24 |
+| src                                                                                 |         67 |      5,679 |         73 |      1,180 |      6,932 |
+| src (Files)                                                                         |          9 |      2,627 |         62 |        445 |      3,134 |
+| src\Compiler                                                                        |          5 |        352 |          3 |         69 |        424 |
+| src\EvalObject                                                                      |         18 |        491 |          0 |        162 |        653 |
+| src\Evaluator                                                                       |          2 |        370 |          2 |         60 |        432 |
+| src\Lexer                                                                           |          1 |        154 |          0 |         23 |        177 |
+| src\Parser                                                                          |          1 |        367 |          0 |         75 |        442 |
+| src\Token                                                                           |          2 |         76 |          4 |         24 |        104 |
+| src\ast                                                                             |         20 |        528 |          0 |        198 |        726 |
+| src\code                                                                            |          6 |        309 |          0 |         59 |        368 |
+| src\vm                                                                              |          3 |        405 |          2 |         65 |        472 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                            | language | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Computer Science Stuff\Compiler\Monkey_java\README.md                            | Markdown |         16 |          0 |          8 |         24 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\CodeTest.java                    | Java     |         67 |          0 |         12 |         79 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\CompilerTest.java                | Java     |        872 |         34 |         56 |        962 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Bytecode.java           | Java     |         26 |          0 |         11 |         37 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\CompilationScope.java   | Java     |         17 |          0 |          6 |         23 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\Compiler.java           | Java     |        291 |          3 |         43 |        337 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\CompilerError.java      | Java     |          6 |          0 |          3 |          9 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Compiler\EmittedInstruction.java | Java     |         12 |          0 |          6 |         18 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\ArrayObj.java         | Java     |         35 |          0 |         14 |         49 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\BooleanObj.java       | Java     |         25 |          0 |         11 |         36 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Builtin.java          | Java     |         24 |          0 |         10 |         34 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\BuiltinFunction.java  | Java     |          5 |          0 |          3 |          8 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Builtins.java         | Java     |         95 |          0 |          8 |        103 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\CompiledFunction.java | Java     |         31 |          0 |         11 |         42 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Environment.java      | Java     |         35 |          0 |         14 |         49 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\ErrorObj.java         | Java     |         18 |          0 |          8 |         26 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\EvalObject.java       | Java     |          5 |          0 |          4 |          9 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\FunctionObj.java      | Java     |         44 |          0 |         14 |         58 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\HashKey.java          | Java     |         28 |          0 |          6 |         34 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\HashObj.java          | Java     |         57 |          0 |         15 |         72 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Hashable.java         | Java     |          4 |          0 |          3 |          7 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\IntegerObj.java       | Java     |         26 |          0 |         12 |         38 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\NullObj.java          | Java     |         13 |          0 |          6 |         19 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\Pair.java             | Java     |         11 |          0 |          5 |         16 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\ReturnObj.java        | Java     |         15 |          0 |          8 |         23 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvalObject\StringObj.java        | Java     |         20 |          0 |         10 |         30 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\EvaluatorTest.java               | Java     |        446 |          6 |         89 |        541 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Evaluator\BuiltinsEval.java      | Java     |         33 |          0 |          8 |         41 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Evaluator\Evaluator.java         | Java     |        337 |          2 |         52 |        391 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\LexerTest.java                   | Java     |         78 |          0 |         11 |         89 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Lexer\Lexer.java                 | Java     |        154 |          0 |         23 |        177 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Main.java                        | Java     |          6 |          0 |          5 |         11 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ParserTest.java                  | Java     |        600 |         13 |        197 |        810 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Parser\Parser.java               | Java     |        367 |          0 |         75 |        442 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\REPL.java                        | Java     |         74 |          1 |         11 |         86 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\SymbolTableTest.java             | Java     |         77 |          6 |         19 |        102 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Token\Token.java                 | Java     |         22 |          0 |          8 |         30 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\Token\TokenType.java             | Java     |         54 |          4 |         16 |         74 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\VMTest.java                      | Java     |        407 |          2 |         45 |        454 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ArrayLiteral.java            | Java     |         36 |          0 |         15 |         51 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\BlockStatement.java          | Java     |         30 |          0 |         10 |         40 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Boolean.java                 | Java     |         21 |          0 |         10 |         31 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\CallExpression.java          | Java     |         35 |          0 |          9 |         44 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Expression.java              | Java     |          4 |          0 |          3 |          7 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ExpressionStatement.java     | Java     |         20 |          0 |          9 |         29 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\FunctionLiteral.java         | Java     |         44 |          0 |         13 |         57 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\HashLiteral.java             | Java     |         35 |          0 |         12 |         47 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Identifier.java              | Java     |         21 |          0 |          9 |         30 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\IfExpression.java            | Java     |         43 |          0 |         13 |         56 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\IndexExpression.java         | Java     |         28 |          0 |         10 |         38 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\InfixExpression.java         | Java     |         24 |          0 |          9 |         33 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\IntegerLiteral.java          | Java     |         27 |          0 |         11 |         38 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\LetStatement.java            | Java     |         41 |          0 |         12 |         53 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\PrefixExpression.java        | Java     |         27 |          0 |         11 |         38 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Program.java                 | Java     |         30 |          0 |         10 |         40 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ProgramNode.java             | Java     |          5 |          0 |          4 |          9 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\ReturnStatement.java         | Java     |         26 |          0 |         14 |         40 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\Statement.java               | Java     |          4 |          0 |          3 |          7 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\ast\StringLiteral.java           | Java     |         27 |          0 |         11 |         38 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Code.java                   | Java     |        130 |          0 |         16 |        146 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Definition.java             | Java     |         15 |          0 |          6 |         21 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Instructions.java           | Java     |         70 |          0 |         12 |         82 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Opcode.java                 | Java     |         25 |          0 |          7 |         32 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\Symbol.java                 | Java     |         24 |          0 |          5 |         29 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\code\SymbolTable.java            | Java     |         45 |          0 |         13 |         58 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\ExecutionError.java           | Java     |          6 |          0 |          3 |          9 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\Frame.java                    | Java     |         16 |          0 |          6 |         22 |
+| c:\Computer Science Stuff\Compiler\Monkey_java\src\vm\VM.java                       | Java     |        383 |          2 |         56 |        441 |
+| Total                                                                               |          |      5,695 |         73 |      1,188 |      6,956 |
++-------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

@@ -398,21 +398,21 @@ public class EvaluatorTest {
             new TestCase("len(\"\")", 0),
             new TestCase("len(\"four\")", 4),
             new TestCase("len(\"hello world\")", 11),
-            new TestCase("len(1)", "function `len` expects STRING input. got INTEGER"),
-            new TestCase("len(\"one\", \"two\")", "function `len` expects 1 argument. got  2"),
+            new TestCase("len(1)", "argument to `len` not supported, got INTEGER"),
+            new TestCase("len(\"one\", \"two\")", "wrong number of arguments. got=2, want=1"),
             new TestCase("len([1, 2, 3])", 3),
             new TestCase("len([])", 0),
-            // new TestCase("puts(\"hello\", \"world!\")", null),
+            new TestCase("print(\"hello\", \"world!\")", null),
             new TestCase("first([1, 2, 3])", 1),
             new TestCase("first([])", null),
-            new TestCase("first(1)", "function `first` expects ARRAY input. got INTEGER"),
+            new TestCase("first(1)", "argument to `first` must be ARRAY, got INTEGER"),
             new TestCase("last([1, 2, 3])", 3),
             new TestCase("last([])", null),
-            new TestCase("last(1)", "function `last` expects ARRAY input. got INTEGER"),
+            new TestCase("last(1)", "argument to `last` must be ARRAY, got INTEGER"),
             new TestCase("rest([1, 2, 3])", Arrays.asList(2, 3)),
             new TestCase("rest([])", null),
             new TestCase("push([], 1)", Collections.singletonList(1)),
-            new TestCase("push(1, 1)", "function `len` expects ARRAY, OBJECT input. got INTEGER, INTEGER")
+            new TestCase("push(1, 1)", "argument to `push` must be ARRAY, got INTEGER")
         };
 
         for (TestCase tt : tests) {

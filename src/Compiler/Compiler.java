@@ -57,9 +57,12 @@ public class Compiler {
     }
 
     public Compiler(SymbolTable s, List<EvalObject> constants) {
-        // this.instructions = new Instructions(new byte[0]);
         this.constants = constants;
         this.symbolTable = s;
+        int numDefs = s.numDefinitions;
+        for (int i = 0; i < Builtins.builtins.length; i++) {
+            symbolTable.defineBuiltin(i, Builtins.builtins[i + numDefs].name);
+        }
         this.scopes = new ArrayList<>();
         this.scopes.add(new CompilationScope());
 
@@ -218,7 +221,8 @@ public class Compiler {
             int numLocals = symbolTable.numDefinitions;
             Instructions ins = popScope();
             CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals, functionLiteral.parameters.size());
-            emit(Code.OpConstant, addConstant(compiledFunction));
+            int functionIndex = addConstant(compiledFunction);
+            emit(Code.OpClosure, functionIndex, 0);
         } else if (node instanceof CallExpression callExpression) {
             compile(callExpression.function);
             for (Expression expr : callExpression.arguments) {
