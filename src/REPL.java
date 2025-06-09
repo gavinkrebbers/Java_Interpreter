@@ -46,13 +46,13 @@ public class REPL {
                     return;
                 }
 
-                // Interpret(program, env);
+                Interpret(program, env);
                 Compiler comp = new Compiler(symbolTable, constants);
 
                 try {
                     comp.compile(program);
                 } catch (CompilerError e) {
-                    System.out.println("execution error" + e);
+                    System.out.println("compilation error" + e);
                     return;
                 }
                 VM machine = new VM(comp.bytecode(), globals);

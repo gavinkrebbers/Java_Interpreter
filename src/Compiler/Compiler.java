@@ -59,9 +59,9 @@ public class Compiler {
     public Compiler(SymbolTable s, List<EvalObject> constants) {
         this.constants = constants;
         this.symbolTable = s;
-        int numDefs = s.numDefinitions;
+        // int numDefs = s.numDefinitions;
         for (int i = 0; i < Builtins.builtins.length; i++) {
-            symbolTable.defineBuiltin(i, Builtins.builtins[i + numDefs].name);
+            symbolTable.defineBuiltin(i, Builtins.builtins[i].name);
         }
         this.scopes = new ArrayList<>();
         this.scopes.add(new CompilationScope());
@@ -188,7 +188,13 @@ public class Compiler {
             Symbol symbol = symbolTable.define(letStatement.identifier.value);
 
             compile(letStatement.value);
-            emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpSetGlobal : Code.OpSetLocal, symbol.index);
+            if (symbol.scope.equals(SymbolTable.GlobalScope)) {
+                emit(Code.OpSetGlobal, symbol.index);
+
+            } else {
+                emit(Code.OpSetLocal, symbol.index);
+
+            }
 
         } else if (node instanceof Identifier identifier) {
             Symbol symbol = symbolTable.resolve(identifier.value);
