@@ -30,6 +30,6 @@ public class Closure implements EvalObject {
 
     @Override
     public String inspect() {
-        return String.format("Closure[%p]", this);
+        return String.format("Closure[0x%x]", System.identityHashCode(this));
     }
 }

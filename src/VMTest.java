@@ -450,4 +450,29 @@ public class VMTest {
 
         runVmTests(tests);
     }
+
+    @Test
+    public void testClosures() {
+        VmTestCase[] tests = new VmTestCase[]{
+            new VmTestCase(
+            "let newClosure = fn(a) { fn() { a; }; };"
+            + "let closure = newClosure(99);"
+            + "closure();",
+            99
+            ),
+            new VmTestCase(
+            "let countDown = fn(x) { "
+            + "if (x == 0) { "
+            + "return 0; "
+            + "} else { "
+            + "countDown(x - 1); "
+            + "} "
+            + "}; "
+            + "countDown(1);",
+            0
+            ),};
+
+        runVmTests(tests);
+    }
+
 }

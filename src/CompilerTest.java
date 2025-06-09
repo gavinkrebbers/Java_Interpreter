@@ -909,4 +909,83 @@ public class CompilerTest {
         );
         runCompilerTests(tests);
     }
+
+    @Test
+    public void testClosures() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        "fn(a) {fn(b) { a + b } }",
+                        Arrays.asList(
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetFree, 0),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpReturnObject)
+                                ),
+                                Arrays.asList(
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpClosure, 0, 1),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpClosure, 1, 0),
+                                Code.Make(Code.OpPop)
+                        )
+                )
+        // new CompilerTestCase(
+        //         "let global = 55;\n"
+        //         + "fn() {\n"
+        //         + "  let a = 66;\n"
+        //         + "  fn() {\n"
+        //         + "    let b = 77;\n"
+        //         + "    fn() {\n"
+        //         + "      let c = 88;\n"
+        //         + "      global + a + b + c;\n"
+        //         + "    }\n"
+        //         + "  }\n"
+        //         + "}",
+        //         Arrays.asList(
+        //                 55L,
+        //                 66L,
+        //                 77L,
+        //                 88L,
+        //                 Arrays.asList(
+        //                         Code.Make(Code.OpConstant, 3),
+        //                         Code.Make(Code.OpSetLocal, 0),
+        //                         Code.Make(Code.OpGetGlobal, 0),
+        //                         Code.Make(Code.OpGetFree, 0),
+        //                         Code.Make(Code.OpAdd),
+        //                         Code.Make(Code.OpGetFree, 1),
+        //                         Code.Make(Code.OpAdd),
+        //                         Code.Make(Code.OpGetLocal, 0),
+        //                         Code.Make(Code.OpAdd),
+        //                         Code.Make(Code.OpReturnObject)
+        //                 ),
+        //                 Arrays.asList(
+        //                         Code.Make(Code.OpConstant, 2),
+        //                         Code.Make(Code.OpSetLocal, 0),
+        //                         Code.Make(Code.OpGetFree, 0),
+        //                         Code.Make(Code.OpGetLocal, 0),
+        //                         Code.Make(Code.OpClosure, 4, 2),
+        //                         Code.Make(Code.OpReturnObject)
+        //                 ),
+        //                 Arrays.asList(
+        //                         Code.Make(Code.OpConstant, 1),
+        //                         Code.Make(Code.OpSetLocal, 0),
+        //                         Code.Make(Code.OpGetLocal, 0),
+        //                         Code.Make(Code.OpClosure, 5, 1),
+        //                         Code.Make(Code.OpReturnObject)
+        //                 )
+        //         ),
+        //         Arrays.asList(
+        //                 Code.Make(Code.OpConstant, 0),
+        //                 Code.Make(Code.OpSetGlobal, 0),
+        //                 Code.Make(Code.OpClosure, 6, 0),
+        //                 Code.Make(Code.OpPop)
+        //         )
+        // )
+        );
+        runCompilerTests(tests);
+    }
 }

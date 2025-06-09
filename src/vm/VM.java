@@ -84,11 +84,17 @@ public class VM {
             String helper = currentFrame().getInstructions().toString();
             byte opValue = op.value;
             switch (opValue) {
+                case Code.OpGetFreeValue:
+                    int freeIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    currentFrame().ip++;
+                    Closure currentClosure = currentFrame().closure;
+                    push(currentClosure.free.get(freeIndex));
+                    break;
                 case Code.OpClosureValue:
                     int funcIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
-                    int freeVars = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 3]});
+                    int numFree = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 3]});
                     currentFrame().ip += 3;
-                    pushClosure(funcIndex);
+                    pushClosure(funcIndex, numFree);
                     break;
                 case Code.OpGetBuiltinValue:
                     int builtinIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
@@ -382,14 +388,20 @@ public class VM {
 
     }
 
-    public void pushClosure(int functionIndex) throws ExecutionError {
+    public void pushClosure(int functionIndex, int numFree) throws ExecutionError {
         EvalObject constant = constants.get(functionIndex);
-        if (constant instanceof CompiledFunction compiledFunction) {
-            Closure closure = new Closure(compiledFunction);
-            push(closure);
-        } else {
+        if (!(constant instanceof CompiledFunction)) {
             throw new ExecutionError("not a funciton");
         }
+        CompiledFunction compiledFunction = (CompiledFunction) constant;
+        List<EvalObject> freeVars = new ArrayList<>();
+        for (int i = 0; i < numFree; i++) {
+            // TODO keep an eye on this 
+            freeVars.add(stack[sp - numFree + i]);
+        }
+        sp = sp - numFree;
+        Closure closure = new Closure(compiledFunction, freeVars);
+        push(closure);
     }
 
     public void push(EvalObject obj) throws ExecutionError {

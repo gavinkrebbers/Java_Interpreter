@@ -185,9 +185,9 @@ public class Compiler {
                     throw new CompilerError("unrecognized prefix expression " + prefixExpression.operator);
             }
         } else if (node instanceof LetStatement letStatement) {
+            Symbol symbol = symbolTable.define(letStatement.identifier.value);
 
             compile(letStatement.value);
-            Symbol symbol = symbolTable.define(letStatement.identifier.value);
             emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpSetGlobal : Code.OpSetLocal, symbol.index);
 
         } else if (node instanceof Identifier identifier) {
@@ -196,7 +196,6 @@ public class Compiler {
                 throw new CompilerError("Unrecognized identifier: " + identifier.value);
             }
             loadSymbol(symbol);
-            // emit(symbol.scope.equals(SymbolTable.GlobalScope) ? Code.OpGetGlobal : Code.OpGetLocal, symbol.index);
 
         } else if (node instanceof IndexExpression indexExpression) {
             compile(indexExpression.left);
@@ -205,10 +204,8 @@ public class Compiler {
         } else if (node instanceof FunctionLiteral functionLiteral) {
             pushScope();
             for (Expression expr : functionLiteral.parameters) {
-                if (expr instanceof Identifier identifier) {
-                    Symbol newSymbol = new Symbol(identifier.value, SymbolTable.LocalScope, symbolTable.numDefinitions);
-                    symbolTable.define(newSymbol.name);
-                }
+                Symbol newSymbol = new Symbol(((Identifier) expr).value, SymbolTable.LocalScope, symbolTable.numDefinitions);
+                symbolTable.define(newSymbol.name);
             }
             compile(functionLiteral.body);
             if (lastInstructionIs(Code.OpPop)) {
@@ -218,11 +215,15 @@ public class Compiler {
             if (!lastInstructionIs(Code.OpReturnObject)) {
                 emit(Code.OpReturn);
             }
+            List<Symbol> freeSymbols = symbolTable.freeSymbols;
             int numLocals = symbolTable.numDefinitions;
             Instructions ins = popScope();
+            for (Symbol symbol : freeSymbols) {
+                loadSymbol(symbol);
+            }
             CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals, functionLiteral.parameters.size());
             int functionIndex = addConstant(compiledFunction);
-            emit(Code.OpClosure, functionIndex, 0);
+            emit(Code.OpClosure, functionIndex, freeSymbols.size());
         } else if (node instanceof CallExpression callExpression) {
             compile(callExpression.function);
             for (Expression expr : callExpression.arguments) {
@@ -329,6 +330,9 @@ public class Compiler {
                 break;
             case SymbolTable.BuiltinScope:
                 emit(Code.OpGetBuiltin, symbol.index);
+                break;
+            case SymbolTable.FreeScope:
+                emit(Code.OpGetFree, symbol.index);
                 break;
             default:
                 throw new CompilerError("error in load symbol");
