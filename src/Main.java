@@ -36,7 +36,7 @@ public class Main {
             }
         }
     };
-    fibonacci(15);    
+    fibonacci(35);    
         """;
         Lexer lexer = new Lexer(input);
         Parser parser = new Parser(lexer);

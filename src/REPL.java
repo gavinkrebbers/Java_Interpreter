@@ -46,7 +46,7 @@ public class REPL {
                     return;
                 }
 
-                Interpret(program, env);
+                // Interpret(program, env);
                 Compiler comp = new Compiler(symbolTable, constants);
 
                 try {

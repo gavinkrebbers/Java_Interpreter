@@ -19,4 +19,10 @@ public class Frame {
     public Instructions getInstructions() {
         return this.closure.function.instructions;
     }
+
+    public void reset(Closure closure, int basePointer) {
+        this.closure = closure;
+        this.ip = 0;
+        this.basePointer = basePointer;
+    }
 }
