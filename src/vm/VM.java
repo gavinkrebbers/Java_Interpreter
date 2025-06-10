@@ -28,6 +28,17 @@ import java.util.Map;
 
 public class VM {
 
+    static final int POOL_MIN = -10;
+    static final int POOL_MAX = 65535;
+    static final IntegerObj[] INTEGER_POOL;
+
+    static {
+        INTEGER_POOL = new IntegerObj[POOL_MAX - POOL_MIN + 1];
+        for (int i = POOL_MIN; i <= POOL_MAX; i++) {
+            INTEGER_POOL[i - POOL_MIN] = new IntegerObj(i);
+        }
+    }
+
     public final int STACK_SIZE = 2048;
     public static final int GLOBALS_SIZE = 65536;
     public List<EvalObject> constants;
@@ -63,34 +74,35 @@ public class VM {
 
     public void run() throws ExecutionError {
         int ip = 0;
-        Instructions ins;
         Opcode op;
-        while (currentFrame().ip < currentFrame().getInstructions().instructions.length - 1) {
+        Frame frame = currentFrame();
+        byte[] ins = frame.getInstructions();
+
+        while (currentFrame().ip < currentFrame().getInstructions().length - 1) {
             currentFrame().ip++;
             ip = currentFrame().ip;
-            ins = currentFrame().getInstructions();
-            op = new Opcode(ins.instructions[ip]);
+            op = new Opcode(ins[ip]);
             byte opValue = op.value;
             switch (opValue) {
                 case Code.OpGetFreeValue:
-                    int freeIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    int freeIndex = Instructions.readUint8(ins[ip + 1]);
                     currentFrame().ip++;
-                    Closure currentClosure = currentFrame().closure;
+                    Closure currentClosure = frame.closure;
                     push(currentClosure.free.get(freeIndex));
                     break;
                 case Code.OpClosureValue:
-                    int funcIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
-                    int numFree = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 3]});
+                    int funcIndex = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
+                    int numFree = Instructions.readUint8(ins[ip + 3]);
                     currentFrame().ip += 3;
                     pushClosure(funcIndex, numFree);
                     break;
                 case Code.OpGetBuiltinValue:
-                    int builtinIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    int builtinIndex = Instructions.readUint8(ins[ip + 1]);
                     currentFrame().ip++;
                     push(Builtins.builtins[builtinIndex]);
                     break;
                 case Code.OpConstantValue:
-                    int constIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    int constIndex = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
                     currentFrame().ip += 2;
                     // this is the error 
                     // sp gets set to -1????
@@ -124,7 +136,7 @@ public class VM {
                     executeMinusOperator();
                     break;
                 case Code.OpJumpNotTruthyValue:
-                    int landingIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    int landingIndex = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
                     currentFrame().ip += 2;
                     EvalObject condition = pop();
                     if (!isTruthy(condition)) {
@@ -132,18 +144,18 @@ public class VM {
                     }
                     break;
                 case Code.OpJumpValue:
-                    currentFrame().ip = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]}) - 1;
+                    currentFrame().ip = Instructions.readUint16(ins[ip + 1], ins[ip + 2]) - 1;
                     break;
                 case Code.OpNullValue:
                     push(NULL_OBJ);
                     break;
                 case Code.OpGetGlobalValue:
-                    int globalsIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    int globalsIndex = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
                     currentFrame().ip += 2;
                     push(globals.get(globalsIndex));
                     break;
                 case Code.OpSetGlobalValue:
-                    int globalIndex = Instructions.readUint16(new byte[]{ins.instructions[ip + 1], ins.instructions[ip + 2]});
+                    int globalIndex = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
                     currentFrame().ip += 2;
                     EvalObject evalObject = pop();
                     setAtIndex(globals, globalIndex, evalObject);
@@ -152,14 +164,14 @@ public class VM {
                     executeIndexExpression();
                     break;
                 case Code.OpCallValue:
-                    int numArgs = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    int numArgs = Instructions.readUint8(ins[ip + 1]);
                     currentFrame().ip++;
                     executeCall(numArgs);
                     break;
                 case Code.OpReturnObjectValue:
                     EvalObject pop = pop();
-                    Frame frame = popFrame();
-                    sp = frame.basePointer - 1;
+                    Frame curFrame = popFrame();
+                    sp = curFrame.basePointer - 1;
                     push(pop);
                     break;
                 case Code.OpReturnValue:
@@ -168,18 +180,23 @@ public class VM {
                     push(NULL_OBJ);
                     break;
                 case Code.OpSetLocalValue:
-                    int localIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    int localIndex = Instructions.readUint8(ins[ip + 1]);
                     currentFrame().ip += 1;
                     stack[currentFrame().basePointer + localIndex] = pop();
                     break;
                 case Code.OpGetLocalValue:
-                    localIndex = Instructions.readUint8(new byte[]{currentFrame().getInstructions().instructions[ip + 1]});
+                    localIndex = Instructions.readUint8(ins[ip + 1]);
                     currentFrame().ip += 1;
                     Frame localFrame = currentFrame();
                     push(stack[localFrame.basePointer + localIndex]);
                     break;
                 default:
                     throw new ExecutionError("unrecognized opcode" + op.getValue());
+            }
+            Frame current = currentFrame();
+            if (current != frame) {
+                frame = current;
+                ins = frame.getInstructions();
             }
         }
     }
@@ -234,7 +251,8 @@ public class VM {
             default:
                 throw new ExecutionError("unknown integer operator");
         }
-        push(new IntegerObj(result));
+        // push(new IntegerObj(result));
+        push(getInteger(result));
     }
 
     public void executeBinaryStringOperation(byte opValue, StringObj left, StringObj right) throws ExecutionError {
@@ -282,8 +300,8 @@ public class VM {
     }
 
     public int executeArray(int ip) throws ExecutionError {
-        byte[] ins = currentFrame().getInstructions().instructions;
-        int arrSize = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+        byte[] ins = currentFrame().getInstructions();
+        int arrSize = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
         currentFrame().ip += 2;
         int startIndex = this.sp - arrSize;
         if (startIndex < 0) {
@@ -300,8 +318,8 @@ public class VM {
     }
 
     public int executeHash(int ip) throws ExecutionError {
-        byte[] ins = currentFrame().getInstructions().instructions;
-        int pairCount = Instructions.readUint16(new byte[]{ins[ip + 1], ins[ip + 2]});
+        byte[] ins = currentFrame().getInstructions();
+        int pairCount = Instructions.readUint16(ins[ip + 1], ins[ip + 2]);
         currentFrame().ip += 2;
         int startingIndex = sp - pairCount;
         int endingIndex = sp;
@@ -441,5 +459,12 @@ public class VM {
     public Frame popFrame() {
         framesIndex--;
         return frames.pop();
+    }
+
+    public static IntegerObj getInteger(int value) {
+        if (value >= POOL_MIN && value <= POOL_MAX) {
+            return INTEGER_POOL[value - POOL_MIN];
+        }
+        return new IntegerObj(value);
     }
 }

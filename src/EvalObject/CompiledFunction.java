@@ -1,30 +1,28 @@
 package EvalObject;
 
-import code.Instructions;
-
 public class CompiledFunction implements EvalObject {
 
-    public Instructions instructions;
+    public byte[] instructions;
     public int numLocals;
     public int numArgs;
 
-    public CompiledFunction(Instructions instructions) {
+    public CompiledFunction(byte[] instructions) {
         this.instructions = instructions;
         numLocals = 0;
     }
 
-    public CompiledFunction(Instructions instructions, int numLocals) {
+    public CompiledFunction(byte[] instructions, int numLocals) {
         this.instructions = instructions;
         this.numLocals = numLocals;
     }
 
-    public CompiledFunction(Instructions instructions, int numLocals, int numArgs) {
+    public CompiledFunction(byte[] instructions, int numLocals, int numArgs) {
         this.instructions = instructions;
         this.numLocals = numLocals;
         this.numArgs = numArgs;
     }
 
-    public Instructions getInstructions() {
+    public byte[] getInstructions() {
         return instructions;
     }
 

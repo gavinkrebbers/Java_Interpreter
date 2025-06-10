@@ -1,27 +1,26 @@
 package Compiler;
 
 import EvalObject.EvalObject;
-import code.Instructions;
 import java.util.List;
 
 public class Bytecode {
 
-    public Instructions instructions;
+    public byte[] instructions;
     public List<EvalObject> constants;
 
     public Bytecode() {
     }
 
-    public Bytecode(Instructions instructions, List<EvalObject> constants) {
+    public Bytecode(byte[] instructions, List<EvalObject> constants) {
         this.instructions = instructions;
         this.constants = constants;
     }
 
-    public Instructions getInstructions() {
+    public byte[] getInstructions() {
         return instructions;
     }
 
-    public void setInstructions(Instructions instructions) {
+    public void setInstructions(byte[] instructions) {
         this.instructions = instructions;
     }
 

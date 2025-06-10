@@ -26,7 +26,6 @@ import ast.ReturnStatement;
 import ast.Statement;
 import ast.StringLiteral;
 import code.Code;
-import code.Instructions;
 import code.Opcode;
 import code.Symbol;
 import code.SymbolTable;
@@ -155,7 +154,7 @@ public class Compiler {
                 removeLastPop();
             }
             int jumpPos = emit(Code.OpJump, 9999);
-            changeOperand(jumpNotTruthyPos, currentInstructions().instructions.length);
+            changeOperand(jumpNotTruthyPos, currentInstructions().length);
 
             if (ifExpression.alternative != null) {
                 compile(ifExpression.alternative);
@@ -166,7 +165,7 @@ public class Compiler {
             if (lastInstructionIs(Code.OpPop)) {
                 removeLastPop();
             }
-            changeOperand(jumpPos, currentInstructions().instructions.length);
+            changeOperand(jumpPos, currentInstructions().length);
         } else if (node instanceof BlockStatement blockStatement) {
             for (Statement stmt : blockStatement.statements) {
                 compile(stmt);
@@ -223,7 +222,7 @@ public class Compiler {
             }
             List<Symbol> freeSymbols = symbolTable.freeSymbols;
             int numLocals = symbolTable.numDefinitions;
-            Instructions ins = popScope();
+            byte[] ins = popScope();
             for (Symbol symbol : freeSymbols) {
                 loadSymbol(symbol);
             }
@@ -258,20 +257,19 @@ public class Compiler {
         return position;
     }
 
-    public Instructions currentInstructions() {
+    public byte[] currentInstructions() {
         return scopes.get(scopeIndex).instructions;
     }
 
     public int addInstruction(byte[] ins) {
-        byte[] prevInstructions = currentInstructions().instructions;
+        byte[] prevInstructions = currentInstructions();
 
         int posNewInstruction = prevInstructions.length;
 
         byte[] combined = new byte[prevInstructions.length + ins.length];
         System.arraycopy(prevInstructions, 0, combined, 0, prevInstructions.length);
         System.arraycopy(ins, 0, combined, prevInstructions.length, ins.length);
-        Instructions newInstructions = new Instructions(combined);
-        scopes.get(scopeIndex).instructions = newInstructions;
+        scopes.get(scopeIndex).instructions = combined;
         return posNewInstruction;
     }
 
@@ -283,7 +281,7 @@ public class Compiler {
     }
 
     public boolean lastInstructionIs(Opcode op) {
-        if (currentInstructions().instructions.length == 0) {
+        if (currentInstructions().length == 0) {
             return false;
         }
         return scopes.get(scopeIndex).lastInstruction.opcode.value == op.value;
@@ -292,33 +290,33 @@ public class Compiler {
     public void removeLastPop() {
         int newLength = scopes.get(scopeIndex).lastInstruction.position;
         byte[] truncatedInstruction = new byte[newLength];
-        System.arraycopy(currentInstructions().instructions, 0, truncatedInstruction, 0, newLength);
-        scopes.get(scopeIndex).instructions = new Instructions(truncatedInstruction);
+        System.arraycopy(currentInstructions(), 0, truncatedInstruction, 0, newLength);
+        scopes.get(scopeIndex).instructions = truncatedInstruction;
 
     }
 
     public void replaceInstruction(int pos, byte[] newInstruction) {
         for (int i = 0; i < newInstruction.length; i++) {
-            currentInstructions().instructions[pos + i] = newInstruction[i];
+            currentInstructions()[pos + i] = newInstruction[i];
         }
     }
 
     public void changeOperand(int opPos, int operand) {
-        Opcode newOp = new Opcode(currentInstructions().instructions[opPos]);
+        Opcode newOp = new Opcode(currentInstructions()[opPos]);
         byte[] newInstruction = Code.Make(newOp, operand);
         replaceInstruction(opPos, newInstruction);
     }
 
     public void pushScope() {
-        CompilationScope newScope = new CompilationScope(new Instructions(), new EmittedInstruction(), new EmittedInstruction());
+        CompilationScope newScope = new CompilationScope(new byte[0], new EmittedInstruction(), new EmittedInstruction());
         scopes.add(newScope);
         scopeIndex++;
         symbolTable = new SymbolTable(symbolTable);
 
     }
 
-    public Instructions popScope() {
-        Instructions ins = currentInstructions();
+    public byte[] popScope() {
+        byte[] ins = currentInstructions();
         scopes.remove(scopes.size() - 1);
         scopeIndex--;
         symbolTable = symbolTable.outer;

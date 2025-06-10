@@ -16,7 +16,7 @@ public class Frame {
         this.basePointer = basePointer;
     }
 
-    public Instructions getInstructions() {
+    public byte[] getInstructions() {
         return this.closure.function.instructions;
     }
 

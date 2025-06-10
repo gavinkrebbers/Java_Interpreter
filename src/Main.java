@@ -2,7 +2,6 @@
 import Compiler.Compiler;
 import Compiler.CompilerError;
 import EvalObject.Environment;
-import EvalObject.ErrorObj;
 import EvalObject.EvalObject;
 import Evaluator.Evaluator;
 import Lexer.Lexer;
@@ -40,53 +39,43 @@ public class Main {
         """;
         Lexer lexer = new Lexer(input);
         Parser parser = new Parser(lexer);
-        Program p = parser.parseProgram();
-        interpret(p, env);
-        compile(p, globals);
-    }
+        Program program = parser.parseProgram();
 
-    public static void interpret(Program program, Environment env) {
         Evaluator e = new Evaluator();
-        long start = System.currentTimeMillis();
+
+        long interpStart = System.currentTimeMillis();
         EvalObject evaluated = e.eval(program, env);
-        if (evaluated instanceof ErrorObj err) {
-            System.out.println(err.message);
-        } else if (evaluated != null) {
-            System.out.println(evaluated.inspect());
-            System.out.println("\n");
-        }
-        long end = System.currentTimeMillis();
+        long interpEnd = System.currentTimeMillis();
 
-        System.out.println("Elapsed time: " + ((end - start) / 1000.0) + " seconds");
-    }
+        double interpTime = (interpEnd - interpStart) / 1000.0;
 
-    public static void compile(Program program, List<EvalObject> globals) {
         Compiler compiler = new Compiler();
-
         try {
             compiler.compile(program);
-
-        } catch (CompilerError e) {
-            System.out.println("compilation error" + e);
+        } catch (CompilerError ce) {
+            System.out.println("compilation error" + ce);
             return;
         }
-
         VM machine = new VM(compiler.bytecode(), globals);
 
+        long compStart = System.currentTimeMillis();
         try {
-            long start = System.currentTimeMillis();
-
             machine.run();
-            long end = System.currentTimeMillis();
-            System.out.println("Elapsed time: " + ((end - start) / 1000.0) + " seconds");
-
-        } catch (ExecutionError e) {
-            System.out.println("execution error" + e);
+        } catch (ExecutionError ee) {
+            System.out.println("Execution error: " + ee.getMessage());
             return;
         }
+
+        long compEnd = System.currentTimeMillis();
         EvalObject lastPopped = machine.lastPoppedElement();
         System.out.println(lastPopped.inspect());
         System.out.println("\n");
+        double compTime = (compEnd - compStart) / 1000.0;
+
+        double speedup = interpTime / compTime;
+        double percent = ((interpTime - compTime) / interpTime) * 100;
+        System.out.printf("Compiler is %.2fx faster than interpreter.%n", speedup);
+
     }
 
 }

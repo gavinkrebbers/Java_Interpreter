@@ -20,12 +20,12 @@ public class Instructions {
         this.instructions = instructions;
     }
 
-    public static int readUint16(byte[] bytes) {
-        return ((bytes[0] & 0xFF) << 8) | (bytes[1] & 0xFF);
+    public static int readUint16(byte byte1, byte byte2) {
+        return ((byte1 & 0xFF) << 8) | (byte2 & 0xFF);
     }
 
-    public static int readUint8(byte[] bytes) {
-        return bytes[0] & 0xFF;
+    public static int readUint8(byte bytes) {
+        return bytes & 0xFF;
     }
 
     public void addInstruction(byte[] newInstruction) {
@@ -58,10 +58,49 @@ public class Instructions {
                 for (int j = 0; j < operandsCount; j++) {
                     int width = operandWidths[j];
                     if (width == 2) {
-                        operands[j] = readUint16(new byte[]{instructions[offset], instructions[offset + 1]});
+                        operands[j] = readUint16(instructions[offset], instructions[offset + 1]);
                     }
                     if (width == 1) {
-                        operands[j] = readUint8(new byte[]{instructions[offset]});
+                        operands[j] = readUint8(instructions[offset]);
+
+                    }
+                    offset += width;
+                }
+                for (int operand : operands) {
+                    sb.append(" ").append(operand);
+                }
+                sb.append("\n");
+                i = offset;
+            } catch (Exception e) {
+                sb.append(String.format("%04d UNKNOWN\n", i));
+                break;
+            }
+        }
+        return sb.toString();
+    }
+
+    public String toString(byte[] ins) {
+        if (ins == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < ins.length) {
+            try {
+                code.Code codeInstance = new code.Code();
+                code.Definition def = codeInstance.lookup(ins[i]);
+                int[] operandWidths = def.getOperandWidths();
+                int operandsCount = operandWidths.length;
+                int[] operands = new int[operandsCount];
+                int offset = i + 1;
+                sb.append(String.format("%04d %s", i, def.getName()));
+                for (int j = 0; j < operandsCount; j++) {
+                    int width = operandWidths[j];
+                    if (width == 2) {
+                        operands[j] = readUint16(ins[offset], ins[offset + 1]);
+                    }
+                    if (width == 1) {
+                        operands[j] = readUint8(ins[offset]);
 
                     }
                     offset += width;

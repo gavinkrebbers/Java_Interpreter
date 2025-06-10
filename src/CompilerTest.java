@@ -54,7 +54,7 @@ public class CompilerTest {
             }
             Bytecode bytecode = compiler.bytecode();
             try {
-                testInstructions(tt.expectedInstructions, bytecode.instructions.getInstructions());
+                testInstructions(tt.expectedInstructions, bytecode.instructions);
             } catch (Exception e) {
                 fail("testInstructions failed: " + e.getMessage());
             }
@@ -118,7 +118,7 @@ public class CompilerTest {
                     throw new Exception("constant is not a compiled function");
                 }
                 CompiledFunction compiledFn = (CompiledFunction) actual.get(i);
-                testInstructions(expectedInstructions, compiledFn.instructions.instructions);
+                testInstructions(expectedInstructions, compiledFn.instructions);
             } else {
                 throw new Exception("unhandled constant type: " + (constant != null ? constant.getClass() : "null"));
             }
@@ -578,7 +578,7 @@ public class CompilerTest {
         // Verify inner scope instructions
         CompilationScope innerScope = compiler.scopes.get(compiler.scopeIndex);
         assertEquals("instructions length wrong in inner scope",
-                1, innerScope.instructions.instructions.length);
+                1, innerScope.instructions.length);
 
         EmittedInstruction last = innerScope.lastInstruction;
         assertNotNull("lastInstruction is null", last);
@@ -595,7 +595,7 @@ public class CompilerTest {
         // Verify outer scope instructions
         CompilationScope outerScope = compiler.scopes.get(compiler.scopeIndex);
         assertEquals("instructions length wrong in outer scope",
-                2, outerScope.instructions.instructions.length);
+                2, outerScope.instructions.length);
 
         last = outerScope.lastInstruction;
         assertNotNull("lastInstruction is null", last);

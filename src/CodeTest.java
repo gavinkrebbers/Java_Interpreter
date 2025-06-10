@@ -53,7 +53,7 @@ public class CodeTest {
             for (int i = 0; i < def.getOperandWidths().length; i++) {
                 int width = def.getOperandWidths()[i];
                 if (width == 2) {
-                    operandsRead[i] = Instructions.readUint16(new byte[]{instruction[1 + offset], instruction[2 + offset]});
+                    operandsRead[i] = Instructions.readUint16(instruction[1 + offset], instruction[2 + offset]);
                 } else if (width == 1) {
                     operandsRead[i] = instruction[1 + offset] & 0xFF;
                 }
