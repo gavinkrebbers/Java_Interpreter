@@ -1,13 +1,8 @@
-# Java Interpreter
+# Java Interpreter, Compiler, and Virtual Machine
 
-Java Interpreter is a simple compiler and virtual machine for the Monkey programming language, written in Java. It parses, compiles, and executes source code. I am also creating a compiled version of the language which is the reason for the compiler and vm folders.
+This project provides both an interpreter and a simple compiler with a stack based virtual machine for a custom programming language, all implemented in Java.
 
-## Features
-
-- Lexer, parser, and AST
-- Support for integer arithmetic and basic expressions
-- Includes Arrays, Strings, and HashMaps
-- Easily extensible for more language features
+It showcases the construction of a complete language toolchain, including a lexer, parser, compiler, and virtual machine. The language supports integer arithmetic, booleans, strings, arrays, hash maps, functions, closures, and more.
 
 ## Language Examples
 
