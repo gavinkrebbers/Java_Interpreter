@@ -12,15 +12,14 @@ public class LexerTest {
     @Test
     public void testNextToken() {
 
-        String input = "let five = 5;\n"
-                + "let ten = 10;\n"
-                + "let add = fn(x, y) {\n"
-                + "x + y;\n"
-                + "};\n"
-                + "let result = add(five, ten);"
-                + "\" string :3 \""
-                + "[1,2,3]"
-                + "{\"foo\" : \"bar\"}";
+        String input = """
+                       let five = 5;
+                       let ten = 10;
+                       let add = fn(x, y) {
+                       x + y;
+                       };
+                       let result = add(five, ten);" string :3 "[1,2,3]{"foo" : "bar"}
+                       while(){1}""";
 
         Token[] expectedTokens = {
             new Token(new TokenType(TokenType.LET), "let"),
@@ -71,6 +70,12 @@ public class LexerTest {
             new Token(new TokenType(TokenType.STRING), "foo"),
             new Token(new TokenType(TokenType.COLON), ":"),
             new Token(new TokenType(TokenType.STRING), "bar"),
+            new Token(new TokenType(TokenType.RBRACE), "}"),
+            new Token(new TokenType(TokenType.WHILE), "while"),
+            new Token(new TokenType(TokenType.LPAREN), "("),
+            new Token(new TokenType(TokenType.RPAREN), ")"),
+            new Token(new TokenType(TokenType.LBRACE), "{"),
+            new Token(new TokenType(TokenType.INT), "1"),
             new Token(new TokenType(TokenType.RBRACE), "}"),
             new Token(new TokenType(TokenType.EOF), "")
         };

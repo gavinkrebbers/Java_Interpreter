@@ -22,6 +22,7 @@ import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
 import ast.StringLiteral;
+import ast.WhileStatement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,8 +125,11 @@ public class Parser {
         switch (this.curToken.tokenType()) {
             case TokenType.LET:
                 return parseLetStatement();
+
             case TokenType.RETURN:
                 return parseReturnStatement();
+            case TokenType.WHILE:
+                return parseWhileStatement();
             default:
                 return parseExpressionStatement();
         }
@@ -159,6 +163,20 @@ public class Parser {
             nextToken();
         }
         return stmt;
+    }
+
+    public Statement parseWhileStatement() {
+        WhileStatement whileStatement = new WhileStatement(curToken);
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+        whileStatement.setCondition(parseExpression(LOWEST));
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+        whileStatement.setBody(parseBlockStatement());
+
+        return whileStatement;
     }
 
     public ExpressionStatement parseExpressionStatement() {

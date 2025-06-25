@@ -32,6 +32,7 @@ import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
 import ast.StringLiteral;
+import ast.WhileStatement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +129,22 @@ public class Evaluator {
             return evalIndexExpression(left, index);
         } else if (node instanceof HashLiteral hash) {
             return evalHashLiteral(hash, env);
+        } else if (node instanceof WhileStatement whileStatement) {
+            EvalObject result = this.NULL;
+            while (true) {
+                EvalObject cond = eval(whileStatement.condition, env);
+                if (isError(cond)) {
+                    return cond;
+                }
+                if (!(cond instanceof BooleanObj booleanObj) || !booleanObj.value) {
+                    break;
+                }
+                result = eval(whileStatement.body, env);
+                if (result instanceof ReturnObj || isError(result)) {
+                    return result;
+                }
+            }
+            return result;
         } else {
             return this.NULL;
         }

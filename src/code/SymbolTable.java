@@ -51,6 +51,7 @@ public class SymbolTable {
     }
 
     public Symbol defineFree(Symbol original) {
+
         freeSymbols.add(original);
 
         Symbol symbol = new Symbol(original.name, FreeScope, freeSymbols.size() - 1);
@@ -68,10 +69,14 @@ public class SymbolTable {
             }
 
             // if is free relative to us
-            if (curSymbol.scope.equals(LocalScope)) {
-                Symbol freeSymbol = defineFree(curSymbol);
-                return freeSymbol;
+            if (curSymbol.scope.equals(LocalScope) || curSymbol.scope.equals(FreeScope)) {
+                Symbol existingFree = store.get(curSymbol.name);
+                if (existingFree != null && existingFree.scope.equals(FreeScope)) {
+                    return existingFree;
+                }
+                return defineFree(curSymbol);
             }
+
             return curSymbol;
 
         }

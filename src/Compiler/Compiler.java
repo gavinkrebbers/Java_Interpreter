@@ -25,6 +25,7 @@ import ast.ProgramNode;
 import ast.ReturnStatement;
 import ast.Statement;
 import ast.StringLiteral;
+import ast.WhileStatement;
 import code.Code;
 import code.Opcode;
 import code.Symbol;
@@ -83,6 +84,33 @@ public class Compiler {
         } else if (node instanceof ExpressionStatement expr) {
             compile(expr.expression);
             emit(Code.OpPop);
+        } else if (node instanceof FunctionLiteral functionLiteral) {
+            pushScope();
+            for (Expression expr : functionLiteral.parameters) {
+                Symbol newSymbol = new Symbol(((Identifier) expr).value, SymbolTable.LocalScope, symbolTable.numDefinitions);
+                symbolTable.define(newSymbol.name);
+            }
+            compile(functionLiteral.body);
+            if (lastInstructionIs(Code.OpPop)) {
+                removeLastPop();
+                emit(Code.OpReturnObject);
+            }
+            if (!lastInstructionIs(Code.OpReturnObject)) {
+                emit(Code.OpReturn);
+            }
+            List<Symbol> freeSymbols = symbolTable.freeSymbols;
+            int numLocals = symbolTable.numDefinitions;
+            byte[] ins = popScope();
+            for (Symbol symbol : freeSymbols) {
+                loadSymbol(symbol);
+            }
+            CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals, functionLiteral.parameters.size());
+            int functionIndex = addConstant(compiledFunction);
+            emit(Code.OpClosure, functionIndex, freeSymbols.size());
+        } else if (node instanceof BlockStatement blockStatement) {
+            for (Statement stmt : blockStatement.statements) {
+                compile(stmt);
+            }
         } else if (node instanceof InfixExpression infixExpression) {
             if (infixExpression.operator.equals("<")) {
                 compile(infixExpression.right);
@@ -166,10 +194,6 @@ public class Compiler {
                 removeLastPop();
             }
             changeOperand(jumpPos, currentInstructions().length);
-        } else if (node instanceof BlockStatement blockStatement) {
-            for (Statement stmt : blockStatement.statements) {
-                compile(stmt);
-            }
         } else if (node instanceof PrefixExpression prefixExpression) {
             compile(prefixExpression.right);
             switch (prefixExpression.operator) {
@@ -206,29 +230,6 @@ public class Compiler {
             compile(indexExpression.left);
             compile(indexExpression.index);
             emit(Code.OpIndex);
-        } else if (node instanceof FunctionLiteral functionLiteral) {
-            pushScope();
-            for (Expression expr : functionLiteral.parameters) {
-                Symbol newSymbol = new Symbol(((Identifier) expr).value, SymbolTable.LocalScope, symbolTable.numDefinitions);
-                symbolTable.define(newSymbol.name);
-            }
-            compile(functionLiteral.body);
-            if (lastInstructionIs(Code.OpPop)) {
-                removeLastPop();
-                emit(Code.OpReturnObject);
-            }
-            if (!lastInstructionIs(Code.OpReturnObject)) {
-                emit(Code.OpReturn);
-            }
-            List<Symbol> freeSymbols = symbolTable.freeSymbols;
-            int numLocals = symbolTable.numDefinitions;
-            byte[] ins = popScope();
-            for (Symbol symbol : freeSymbols) {
-                loadSymbol(symbol);
-            }
-            CompiledFunction compiledFunction = new CompiledFunction(ins, numLocals, functionLiteral.parameters.size());
-            int functionIndex = addConstant(compiledFunction);
-            emit(Code.OpClosure, functionIndex, freeSymbols.size());
         } else if (node instanceof CallExpression callExpression) {
             compile(callExpression.function);
             for (Expression expr : callExpression.arguments) {
@@ -238,6 +239,17 @@ public class Compiler {
         } else if (node instanceof ReturnStatement returnStatement) {
             compile(returnStatement.returnValue);
             emit(Code.OpReturnObject);
+        } else if (node instanceof WhileStatement whileStatement) {
+            int loopStartPos = currentInstructions().length;
+            compile(whileStatement.condition);
+            int jumpNotTruthyPos = emit(Code.OpJumpNotTruthy, 9999);
+            compile(whileStatement.body);
+            emit(Code.OpJump, loopStartPos);
+            changeOperand(jumpNotTruthyPos, currentInstructions().length);
+            if (lastInstructionIs(Code.OpPop)) {
+                removeLastPop();
+            }
+            emit(Code.OpNull);
         } else {
             throw new CompilerError("Unrecognized operation");
         }

@@ -1,6 +1,7 @@
 
 import Lexer.Lexer;
 import Parser.Parser;
+import ast.BlockStatement;
 import ast.CallExpression;
 import ast.Expression;
 import ast.ExpressionStatement;
@@ -15,6 +16,7 @@ import ast.PrefixExpression;
 import ast.Program;
 import ast.ReturnStatement;
 import ast.Statement;
+import ast.WhileStatement;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -805,5 +807,132 @@ public class ParserTest {
 
             testFunc.accept(entry.getValue());
         }
+    }
+
+    @Test
+    public void testWhileStatement() {
+        String input = "while (x < y) { x; }";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not a WhileStatement", stmt instanceof WhileStatement);
+
+        WhileStatement whileStmt = (WhileStatement) stmt;
+
+        // Test the condition
+        assertTrue("Condition is not an InfixExpression",
+                testInfixExpression(whileStmt.getCondition(), "x", "<", "y"));
+
+        // Test the body
+        BlockStatement body = whileStmt.getBody();
+        assertEquals("Body should have 1 statement", 1, body.getStatements().size());
+
+        Statement bodyStmt = body.getStatements().get(0);
+        assertTrue("Body statement is not an ExpressionStatement",
+                bodyStmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) bodyStmt;
+        assertTrue("Body expression is not an Identifier",
+                testIdentifier(exprStmt.expression, "x"));
+    }
+
+    @Test
+    public void testWhileStatementWithBlock() {
+        String input = "while (true) { let x = 5; x; }";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not a WhileStatement", stmt instanceof WhileStatement);
+
+        WhileStatement whileStmt = (WhileStatement) stmt;
+
+        // Test the condition
+        assertTrue("Condition is not a Boolean literal",
+                testBooleanLiteral(whileStmt.getCondition(), true));
+
+        // Test the body
+        BlockStatement body = whileStmt.getBody();
+        assertEquals("Body should have 2 statements", 2, body.getStatements().size());
+
+        // Test first statement (let statement)
+        Statement firstStmt = body.getStatements().get(0);
+        assertTrue("First statement is not a LetStatement",
+                firstStmt instanceof LetStatement);
+
+        LetStatement letStmt = (LetStatement) firstStmt;
+        assertEquals("LetStatement identifier should be 'x'", "x", letStmt.identifier.value);
+        assertTrue("LetStatement value should be 5",
+                testIntegerLiteral(letStmt.value, 5));
+
+        // Test second statement (expression statement)
+        Statement secondStmt = body.getStatements().get(1);
+        assertTrue("Second statement is not an ExpressionStatement",
+                secondStmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) secondStmt;
+        assertTrue("Expression should be an Identifier",
+                testIdentifier(exprStmt.expression, "x"));
+    }
+
+    @Test
+    public void testNestedWhileStatements() {
+        String input = "while (x) { while (y) { z; } }";
+
+        Lexer lexer = new Lexer(input);
+        Parser parser = new Parser(lexer);
+        Program program = parser.parseProgram();
+        checkParserErrors(parser);
+
+        List<Statement> statements = program.getStatements();
+        assertEquals("program.Statements does not contain 1 statement", 1, statements.size());
+
+        Statement stmt = statements.get(0);
+        assertTrue("Statement is not a WhileStatement", stmt instanceof WhileStatement);
+
+        WhileStatement outerWhile = (WhileStatement) stmt;
+
+        // Test outer condition
+        assertTrue("Outer condition should be an Identifier",
+                testIdentifier(outerWhile.getCondition(), "x"));
+
+        // Test outer body (should contain inner while)
+        BlockStatement outerBody = outerWhile.getBody();
+        assertEquals("Outer body should have 1 statement", 1, outerBody.getStatements().size());
+
+        Statement innerStmt = outerBody.getStatements().get(0);
+        assertTrue("Inner statement should be a WhileStatement",
+                innerStmt instanceof WhileStatement);
+
+        WhileStatement innerWhile = (WhileStatement) innerStmt;
+
+        // Test inner condition
+        assertTrue("Inner condition should be an Identifier",
+                testIdentifier(innerWhile.getCondition(), "y"));
+
+        // Test inner body
+        BlockStatement innerBody = innerWhile.getBody();
+        assertEquals("Inner body should have 1 statement", 1, innerBody.getStatements().size());
+
+        Statement bodyStmt = innerBody.getStatements().get(0);
+        assertTrue("Body statement is not an ExpressionStatement",
+                bodyStmt instanceof ExpressionStatement);
+
+        ExpressionStatement exprStmt = (ExpressionStatement) bodyStmt;
+        assertTrue("Body expression is not an Identifier",
+                testIdentifier(exprStmt.expression, "z"));
     }
 }

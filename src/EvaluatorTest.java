@@ -528,6 +528,33 @@ public class EvaluatorTest {
         }
     }
 
+    @Test
+    public void testWhileLoops() {
+        class TestCase {
+
+            String input;
+            long expected;
+
+            TestCase(String input, long expected) {
+                this.input = input;
+                this.expected = expected;
+            }
+        }
+
+        TestCase[] tests = {
+            new TestCase("let i = 0; let sum = 0; while (i < 5) { let sum = sum + i; let i = i + 1; } sum", 10),
+            new TestCase("let i = 0; let count = 0; while (i < 3) { let count = count + 2; let i = i + 1; } count", 6),
+            new TestCase("let i = 5; let product = 1; while (i > 1) { let product = product * i; let i = i - 1; } product", 120)
+        };
+
+        for (TestCase tt : tests) {
+            EvalObject evaluated = testEval(tt.input);
+            assertTrue("Expected IntegerObj", evaluated instanceof IntegerObj);
+            IntegerObj result = (IntegerObj) evaluated;
+            assertEquals("Incorrect result for input: " + tt.input, tt.expected, result.getValue());
+        }
+    }
+
     private EvalObject testEval(String input) {
         Lexer lexer = new Lexer(input);
         Parser parser = new Parser(lexer);

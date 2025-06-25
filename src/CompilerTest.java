@@ -109,6 +109,8 @@ public class CompilerTest {
             Object constant = expected.get(i);
             if (constant instanceof Integer) {
                 testIntegerObject(((Integer) constant).longValue(), actual.get(i));
+            } else if (constant instanceof Long) {
+                testIntegerObject((Long) constant, actual.get(i));
             } else if (constant instanceof String) {
                 testStringObject((String) constant, actual.get(i));
             } else if (constant instanceof List) {
@@ -932,59 +934,111 @@ public class CompilerTest {
                                 Code.Make(Code.OpClosure, 1, 0),
                                 Code.Make(Code.OpPop)
                         )
+                ),
+                new CompilerTestCase(
+                        """
+                        let global = 55;
+                        fn() {
+                          let a = 66;
+                          fn() {
+                            let b = 77;
+                            fn() {
+                              let c = 88;
+                              global + a + b + c;
+                            }
+                          }
+                        }""",
+                        Arrays.asList(
+                                55,
+                                66,
+                                77,
+                                88,
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 3),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpGetGlobal, 0),
+                                        Code.Make(Code.OpGetFree, 0),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpGetFree, 1),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpAdd),
+                                        Code.Make(Code.OpReturnObject)
+                                ),
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 2),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpGetFree, 0),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpClosure, 4, 2),
+                                        Code.Make(Code.OpReturnObject)
+                                ),
+                                Arrays.asList(
+                                        Code.Make(Code.OpConstant, 1),
+                                        Code.Make(Code.OpSetLocal, 0),
+                                        Code.Make(Code.OpGetLocal, 0),
+                                        Code.Make(Code.OpClosure, 5, 1),
+                                        Code.Make(Code.OpReturnObject)
+                                )
+                        ),
+                        Arrays.asList(
+                                Code.Make(Code.OpConstant, 0),
+                                Code.Make(Code.OpSetGlobal, 0),
+                                Code.Make(Code.OpClosure, 6, 0),
+                                Code.Make(Code.OpPop)
+                        )
                 )
-        // new CompilerTestCase(
-        //         "let global = 55;\n"
-        //         + "fn() {\n"
-        //         + "  let a = 66;\n"
-        //         + "  fn() {\n"
-        //         + "    let b = 77;\n"
-        //         + "    fn() {\n"
-        //         + "      let c = 88;\n"
-        //         + "      global + a + b + c;\n"
-        //         + "    }\n"
-        //         + "  }\n"
-        //         + "}",
-        //         Arrays.asList(
-        //                 55L,
-        //                 66L,
-        //                 77L,
-        //                 88L,
-        //                 Arrays.asList(
-        //                         Code.Make(Code.OpConstant, 3),
-        //                         Code.Make(Code.OpSetLocal, 0),
-        //                         Code.Make(Code.OpGetGlobal, 0),
-        //                         Code.Make(Code.OpGetFree, 0),
-        //                         Code.Make(Code.OpAdd),
-        //                         Code.Make(Code.OpGetFree, 1),
-        //                         Code.Make(Code.OpAdd),
-        //                         Code.Make(Code.OpGetLocal, 0),
-        //                         Code.Make(Code.OpAdd),
-        //                         Code.Make(Code.OpReturnObject)
-        //                 ),
-        //                 Arrays.asList(
-        //                         Code.Make(Code.OpConstant, 2),
-        //                         Code.Make(Code.OpSetLocal, 0),
-        //                         Code.Make(Code.OpGetFree, 0),
-        //                         Code.Make(Code.OpGetLocal, 0),
-        //                         Code.Make(Code.OpClosure, 4, 2),
-        //                         Code.Make(Code.OpReturnObject)
-        //                 ),
-        //                 Arrays.asList(
-        //                         Code.Make(Code.OpConstant, 1),
-        //                         Code.Make(Code.OpSetLocal, 0),
-        //                         Code.Make(Code.OpGetLocal, 0),
-        //                         Code.Make(Code.OpClosure, 5, 1),
-        //                         Code.Make(Code.OpReturnObject)
-        //                 )
-        //         ),
-        //         Arrays.asList(
-        //                 Code.Make(Code.OpConstant, 0),
-        //                 Code.Make(Code.OpSetGlobal, 0),
-        //                 Code.Make(Code.OpClosure, 6, 0),
-        //                 Code.Make(Code.OpPop)
-        //         )
-        // )
+        );
+        runCompilerTests(tests);
+    }
+
+    @Test
+    public void testWhileLoopAddition() {
+        List<CompilerTestCase> tests = Arrays.asList(
+                new CompilerTestCase(
+                        """
+            let i = 0;
+            let sum = 0;
+            while (i < 5) {
+                let sum = sum + i;
+                let i = i + 1;
+            }
+            """,
+                        Arrays.asList(0, 0, 5, 1), // Added constant 1 for i+1 operation
+                        Arrays.asList(
+                                // let i = 0;
+                                Code.Make(Code.OpConstant, 0), // 0: push 0
+                                Code.Make(Code.OpSetGlobal, 0), // 3: set global[0] = i
+
+                                // let sum = 0;
+                                Code.Make(Code.OpConstant, 1), // 6: push 0
+                                Code.Make(Code.OpSetGlobal, 1), // 9: set global[1] = sum
+
+                                // while loop condition:
+                                Code.Make(Code.OpConstant, 2), // 12: get i
+                                Code.Make(Code.OpGetGlobal, 0), // 15: push 5
+                                Code.Make(Code.OpGreaterThan), // 18: i > 5 (since VM only has >)
+                                Code.Make(Code.OpJumpNotTruthy, 45), // 19: jump out if !(i < 5)
+
+                                // sum = sum + i;
+                                Code.Make(Code.OpGetGlobal, 2), // 22: get sum
+                                Code.Make(Code.OpGetGlobal, 0), // 25: get i
+                                Code.Make(Code.OpAdd), // 28: sum + i
+                                Code.Make(Code.OpSetGlobal, 2), // 29: set sum
+
+                                // i = i + 1;
+                                Code.Make(Code.OpGetGlobal, 3), // 32: get i
+                                Code.Make(Code.OpConstant, 3), // 35: push 1
+                                Code.Make(Code.OpAdd), // 38: i + 1
+                                Code.Make(Code.OpSetGlobal, 3), // 39: set i
+
+                                // jump back to while condition
+                                Code.Make(Code.OpJump, 12), // 42: jump to while condition
+
+                                // end of loop
+                                Code.Make(Code.OpNull) // 45: push null
+                        )
+                )
         );
         runCompilerTests(tests);
     }

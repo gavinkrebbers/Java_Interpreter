@@ -50,6 +50,8 @@ public class TokenType {
     public static final String ELSE = "ELSE";
     public static final String RETURN = "RETURN";
 
+    public static final String WHILE = "WHILE";
+
     public static final Map<String, String> keywords;
 
     static {
@@ -61,6 +63,7 @@ public class TokenType {
         keywords.put("if", IF);
         keywords.put("else", ELSE);
         keywords.put("return", RETURN);
+        keywords.put("while", WHILE);
     }
 
     public TokenType(String TokenType) {
